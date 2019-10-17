@@ -1,0 +1,670 @@
+Model {
+  Name			  "GNa_model"
+  Version		  3.00
+  SimParamPage		  "WorkspaceI/O"
+  SampleTimeColors	  off
+  InvariantConstants	  off
+  WideVectorLines	  off
+  ShowLineWidths	  off
+  ShowPortDataTypes	  off
+  StartTime		  "0.0"
+  StopTime		  "20"
+  SolverMode		  "Auto"
+  Solver		  "ode45"
+  RelTol		  "1e-3"
+  AbsTol		  "auto"
+  Refine		  "1"
+  MaxStep		  "auto"
+  InitialStep		  "auto"
+  FixedStep		  "0.01"
+  MaxOrder		  5
+  OutputOption		  "RefineOutputTimes"
+  OutputTimes		  "[]"
+  LoadExternalInput	  off
+  ExternalInput		  "[t, u]"
+  SaveTime		  on
+  TimeSaveName		  "tout"
+  SaveState		  off
+  StateSaveName		  "xout"
+  SaveOutput		  on
+  OutputSaveName	  "yout"
+  LoadInitialState	  off
+  InitialState		  "xInitial"
+  SaveFinalState	  off
+  FinalStateName	  "xFinal"
+  SaveFormat		  "Matrix"
+  LimitMaxRows		  off
+  MaxRows		  "1000"
+  Decimation		  "1"
+  AlgebraicLoopMsg	  "warning"
+  MinStepSizeMsg	  "warning"
+  UnconnectedInputMsg	  "warning"
+  UnconnectedOutputMsg	  "warning"
+  UnconnectedLineMsg	  "warning"
+  InheritedTsInSrcMsg	  "warning"
+  IntegerOverflowMsg	  "warning"
+  UnnecessaryDatatypeConvMsg "none"
+  Int32ToFloatConvMsg	  "warning"
+  SignalLabelMismatchMsg  "none"
+  ConsistencyChecking	  "off"
+  ZeroCross		  on
+  SimulationMode	  "normal"
+  BlockDataTips		  on
+  BlockParametersDataTip  on
+  BlockAttributesDataTip  off
+  BlockPortWidthsDataTip  off
+  BlockDescriptionStringDataTip	off
+  BlockMaskParametersDataTip off
+  ToolBar		  on
+  StatusBar		  on
+  BrowserShowLibraryLinks off
+  BrowserLookUnderMasks	  off
+  OptimizeBlockIOStorage  on
+  BufferReuse		  on
+  BooleanDataType	  off
+  RTWSystemTargetFile	  "grt.tlc"
+  RTWInlineParameters	  off
+  RTWRetainRTWFile	  off
+  RTWTemplateMakefile	  "grt_default_tmf"
+  RTWMakeCommand	  "make_rtw"
+  RTWGenerateCodeOnly	  off
+  ExtModeMexFile	  "ext_comm"
+  ExtModeBatchMode	  off
+  ExtModeTrigType	  "manual"
+  ExtModeTrigMode	  "oneshot"
+  ExtModeTrigPort	  "1"
+  ExtModeTrigElement	  "any"
+  ExtModeTrigDuration	  1000
+  ExtModeTrigHoldOff	  0
+  ExtModeTrigDelay	  0
+  ExtModeTrigDirection	  "rising"
+  ExtModeTrigLevel	  0
+  ExtModeArchiveMode	  "off"
+  ExtModeAutoIncOneShot	  off
+  ExtModeIncDirWhenArm	  off
+  ExtModeAddSuffixToVar	  off
+  ExtModeWriteAllDataToWs off
+  ExtModeArmWhenConnect	  off
+  Created		  "Sat Feb 17 22:08:34 2001"
+  Creator		  "angel"
+  UpdateHistory		  "UpdateHistoryNever"
+  ModifiedByFormat	  "%<Auto>"
+  LastModifiedBy	  "angel"
+  ModifiedDateFormat	  "%<Auto>"
+  LastModifiedDate	  "Fri Feb 23 15:06:08 2001"
+  ModelVersionFormat	  "1.%<AutoIncrement:47>"
+  ConfigurationManager	  "none"
+  BlockDefaults {
+    Orientation		    "right"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    NamePlacement	    "normal"
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+    ShowName		    on
+  }
+  AnnotationDefaults {
+    HorizontalAlignment	    "center"
+    VerticalAlignment	    "middle"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  LineDefaults {
+    FontName		    "Helvetica"
+    FontSize		    9
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  System {
+    Name		    "GNa_model"
+    Location		    [152, 256, 1160, 601]
+    Open		    on
+    ModelBrowserVisibility  off
+    ModelBrowserWidth	    200
+    ScreenColor		    "white"
+    PaperOrientation	    "landscape"
+    PaperPositionMode	    "auto"
+    PaperType		    "usletter"
+    PaperUnits		    "inches"
+    ZoomFactor		    "100"
+    AutoZoom		    on
+    ReportName		    "simulink-default.rpt"
+    Block {
+      BlockType		      Constant
+      Name		      "Constant"
+      Position		      [15, 310, 45, 340]
+      Value		      "-130"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "Constant1"
+      Position		      [520, 475, 550, 505]
+      Value		      "115"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "Constant2"
+      Position		      [740, 315, 770, 345]
+      Value		      "1000"
+    }
+    Block {
+      BlockType		      Gain
+      Name		      "Gain"
+      Position		      [120, 315, 150, 345]
+      Gain		      "1"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Product
+      Name		      "Product"
+      Ports		      [5, 1, 0, 0, 0]
+      Position		      [655, 56, 715, 204]
+      Inputs		      "5"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Product
+      Name		      "Product1"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [745, 427, 775, 458]
+      NamePlacement	      "alternate"
+      Inputs		      "2"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Product
+      Name		      "Product2"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [800, 267, 830, 298]
+      Inputs		      "2"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "Scope"
+      Ports		      [1, 0, 0, 0, 0]
+      Position		      [780, 169, 810, 201]
+      Floating		      off
+      Location		      [493, 183, 817, 422]
+      Open		      on
+      NumInputPorts	      "1"
+      TickLabels	      "OneTimeTick"
+      ZoomMode		      "yonly"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      Grid		      "on"
+      TimeRange		      "auto"
+      YMin		      "-5"
+      YMax		      "5"
+      SaveToWorkspace	      off
+      SaveName		      "ScopeData"
+      DataFormat	      "StructureWithTime"
+      LimitMaxRows	      on
+      MaxRows		      "5000"
+      Decimation	      "1"
+      SampleInput	      off
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "Scope1"
+      Ports		      [1, 0, 0, 0, 0]
+      Position		      [795, 379, 825, 411]
+      Floating		      off
+      Location		      [793, 40, 1117, 279]
+      Open		      on
+      NumInputPorts	      "1"
+      TickLabels	      "OneTimeTick"
+      ZoomMode		      "on"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      Grid		      "on"
+      TimeRange		      "auto"
+      YMin		      "-5"
+      YMax		      "5"
+      SaveToWorkspace	      off
+      SaveName		      "ScopeData"
+      DataFormat	      "StructureWithTime"
+      LimitMaxRows	      on
+      MaxRows		      "5000"
+      Decimation	      "1"
+      SampleInput	      off
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Sum
+      Name		      "Sum"
+      Ports		      [3, 1, 0, 0, 0]
+      Position		      [445, 90, 465, 110]
+      ShowName		      off
+      IconShape		      "round"
+      Inputs		      "|+--"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Sum
+      Name		      "Sum1"
+      Ports		      [3, 1, 0, 0, 0]
+      Position		      [430, 300, 450, 320]
+      ShowName		      off
+      IconShape		      "round"
+      Inputs		      "|+--"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Sum
+      Name		      "Sum2"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [575, 450, 595, 470]
+      ShowName		      off
+      IconShape		      "round"
+      Inputs		      "|--"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      ToFile
+      Name		      "To File"
+      Position		      [855, 269, 985, 301]
+      Filename		      "data/Na70.mat"
+      MatrixName	      "Gna"
+      Decimation	      "1"
+      SampleTime	      "-1"
+    }
+    Block {
+      BlockType		      ToFile
+      Name		      "To File1"
+      Position		      [835, 475, 895, 505]
+      Filename		      "data/Ina70.mat"
+      MatrixName	      "Ina"
+      Decimation	      "1"
+      SampleTime	      "-1"
+    }
+    Block {
+      BlockType		      Fcn
+      Name		      "ab"
+      Position		      [205, 85, 265, 115]
+      Expr		      "0.07*(exp(u[1]/20))"
+    }
+    Block {
+      BlockType		      Product
+      Name		      "ab*b"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [350, 112, 380, 143]
+      Inputs		      "2"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Fcn
+      Name		      "am"
+      Position		      [215, 320, 275, 350]
+      Expr		      "0.1*(u[1]+25)/(exp((u[1]+25)/10)-1)"
+    }
+    Block {
+      BlockType		      Product
+      Name		      "am*m"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [335, 327, 365, 358]
+      Inputs		      "2"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Integrator
+      Name		      "b"
+      Ports		      [1, 1, 0, 0, 0]
+      Position		      [520, 85, 550, 115]
+      ExternalReset	      "none"
+      InitialConditionSource  "internal"
+      InitialCondition	      "0.59615"
+      LimitOutput	      off
+      UpperSaturationLimit    "inf"
+      LowerSaturationLimit    "-inf"
+      ShowSaturationPort      off
+      ShowStatePort	      off
+      AbsoluteTolerance	      "auto"
+    }
+    Block {
+      BlockType		      Fcn
+      Name		      "bb"
+      Position		      [210, 200, 270, 230]
+      Expr		      "1/(exp((u[1]+30)/10)+1)"
+    }
+    Block {
+      BlockType		      Product
+      Name		      "bb*b"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [350, 202, 380, 233]
+      Inputs		      "2"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Fcn
+      Name		      "bm"
+      Position		      [215, 395, 275, 425]
+      Expr		      "4*exp(u[1]/18)"
+    }
+    Block {
+      BlockType		      Product
+      Name		      "bm*m"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [335, 392, 365, 423]
+      Inputs		      "2"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Integrator
+      Name		      "m"
+      Ports		      [1, 1, 0, 0, 0]
+      Position		      [520, 295, 550, 325]
+      ExternalReset	      "none"
+      InitialConditionSource  "internal"
+      InitialCondition	      "0.05294"
+      LimitOutput	      off
+      UpperSaturationLimit    "inf"
+      LowerSaturationLimit    "-inf"
+      ShowSaturationPort      off
+      ShowStatePort	      off
+      AbsoluteTolerance	      "auto"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "maximum of GNa"
+      Position		      [565, 15, 595, 45]
+      Value		      "120.00e-3"
+    }
+    Block {
+      BlockType		      Outport
+      Name		      "GNa"
+      Position		      [740, 123, 770, 137]
+      Port		      "1"
+      OutputWhenDisabled      "held"
+      InitialOutput	      "[]"
+    }
+    Block {
+      BlockType		      Outport
+      Name		      "Out1"
+      Position		      [795, 438, 825, 452]
+      Port		      "2"
+      OutputWhenDisabled      "held"
+      InitialOutput	      "[]"
+    }
+    Line {
+      SrcBlock		      "bb"
+      SrcPort		      1
+      Points		      [60, 0]
+      DstBlock		      "bb*b"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "ab"
+      SrcPort		      1
+      Points		      [65, 0]
+      Branch {
+	DstBlock		"ab*b"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, -12]
+	DstBlock		"Sum"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "ab*b"
+      SrcPort		      1
+      Points		      [49, 0]
+      DstBlock		      "Sum"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "bb*b"
+      SrcPort		      1
+      Points		      [70, 0]
+      DstBlock		      "Sum"
+      DstPort		      3
+    }
+    Line {
+      SrcBlock		      "bm"
+      SrcPort		      1
+      Points		      [40, 0]
+      DstBlock		      "bm*m"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "am*m"
+      SrcPort		      1
+      Points		      [49, 0]
+      DstBlock		      "Sum1"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "bm*m"
+      SrcPort		      1
+      Points		      [70, 0]
+      DstBlock		      "Sum1"
+      DstPort		      3
+    }
+    Line {
+      SrcBlock		      "am"
+      SrcPort		      1
+      Points		      [20, 0]
+      Branch {
+	DstBlock		"am*m"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, -37]
+	DstBlock		"Sum1"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Sum"
+      SrcPort		      1
+      DstBlock		      "b"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "b"
+      SrcPort		      1
+      Points		      [30, 0]
+      Branch {
+	Points			[0, 65; -250, 0]
+	Branch {
+	  Points		  [0, 0]
+	  DstBlock		  "ab*b"
+	  DstPort		  2
+	}
+	Branch {
+	  DstBlock		  "bb*b"
+	  DstPort		  1
+	}
+      }
+      Branch {
+	DstBlock		"Product"
+	DstPort			2
+      }
+    }
+    Line {
+      SrcBlock		      "m"
+      SrcPort		      1
+      Points		      [30, 0]
+      Branch {
+	Points			[35, 0; 0, 65; -300, 0]
+	Branch {
+	  DstBlock		  "am*m"
+	  DstPort		  2
+	}
+	Branch {
+	  DstBlock		  "bm*m"
+	  DstPort		  1
+	}
+      }
+      Branch {
+	Points			[35, 0; 0, -125]
+	Branch {
+	  Points		  [0, -25]
+	  Branch {
+	    Points		    [0, -30]
+	    DstBlock		    "Product"
+	    DstPort		    3
+	  }
+	  Branch {
+	    DstBlock		    "Product"
+	    DstPort		    4
+	  }
+	}
+	Branch {
+	  Points		  [0, 5]
+	  DstBlock		  "Product"
+	  DstPort		  5
+	}
+      }
+    }
+    Line {
+      SrcBlock		      "maximum of GNa"
+      SrcPort		      1
+      Points		      [40, 0]
+      DstBlock		      "Product"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Sum1"
+      SrcPort		      1
+      DstBlock		      "m"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Gain"
+      SrcPort		      1
+      Points		      [35, 0]
+      Branch {
+	Points			[10, 0]
+	DstBlock		"am"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 0]
+	Branch {
+	  Points		  [0, -115; 0, -5]
+	  Branch {
+	    DstBlock		    "ab"
+	    DstPort		    1
+	  }
+	  Branch {
+	    Points		    [0, 5]
+	    DstBlock		    "bb"
+	    DstPort		    1
+	  }
+	}
+	Branch {
+	  Points		  [0, 80]
+	  DstBlock		  "bm"
+	  DstPort		  1
+	}
+      }
+    }
+    Line {
+      SrcBlock		      "Constant"
+      SrcPort		      1
+      Points		      [0, 5; 20, 0]
+      Branch {
+	DstBlock		"Gain"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 130]
+	DstBlock		"Sum2"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Constant1"
+      SrcPort		      1
+      Points		      [30, 0]
+      DstBlock		      "Sum2"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Sum2"
+      SrcPort		      1
+      Points		      [130, 0]
+      DstBlock		      "Product1"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Product"
+      SrcPort		      1
+      Points		      [0, 0]
+      Branch {
+	DstBlock		"GNa"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 55]
+	Branch {
+	  DstBlock		  "Scope"
+	  DstPort		  1
+	}
+	Branch {
+	  Points		  [0, 90]
+	  DstBlock		  "Product2"
+	  DstPort		  1
+	}
+      }
+    }
+    Line {
+      SrcBlock		      "Product1"
+      SrcPort		      1
+      Points		      [0, 0]
+      Branch {
+	DstBlock		"Scope1"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 0]
+	Branch {
+	  DstBlock		  "Out1"
+	  DstPort		  1
+	}
+	Branch {
+	  Points		  [0, 45]
+	  DstBlock		  "To File1"
+	  DstPort		  1
+	}
+      }
+    }
+    Line {
+      SrcBlock		      "Constant2"
+      SrcPort		      1
+      Points		      [10, 0]
+      DstBlock		      "Product2"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Product2"
+      SrcPort		      1
+      Points		      [5, 0]
+      Branch {
+	DstBlock		"To File"
+	DstPort			1
+      }
+      Branch {
+	Points			[5, 0; 0, 65; -115, 0]
+	DstBlock		"Product1"
+	DstPort			1
+      }
+    }
+  }
+}

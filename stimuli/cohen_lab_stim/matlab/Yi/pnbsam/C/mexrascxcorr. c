@@ -1,0 +1,7 @@
+/* rascxcorr.c*/
+#include "mex.h"
+
+void mexrascxcorr(double Ravg[], double ras[])
+{double rmatrix;
+
+}

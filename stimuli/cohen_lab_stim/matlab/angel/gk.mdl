@@ -1,0 +1,546 @@
+Model {
+  Name			  "GK_model"
+  Version		  3.00
+  SimParamPage		  "Solver"
+  SampleTimeColors	  off
+  InvariantConstants	  off
+  WideVectorLines	  off
+  ShowLineWidths	  off
+  ShowPortDataTypes	  off
+  StartTime		  "0.0"
+  StopTime		  "20"
+  SolverMode		  "Auto"
+  Solver		  "ode45"
+  RelTol		  "1e-3"
+  AbsTol		  "auto"
+  Refine		  "1"
+  MaxStep		  "auto"
+  InitialStep		  "auto"
+  FixedStep		  "auto"
+  MaxOrder		  5
+  OutputOption		  "RefineOutputTimes"
+  OutputTimes		  "[]"
+  LoadExternalInput	  off
+  ExternalInput		  "[t, u]"
+  SaveTime		  on
+  TimeSaveName		  "tout"
+  SaveState		  off
+  StateSaveName		  "xout"
+  SaveOutput		  on
+  OutputSaveName	  "yout"
+  LoadInitialState	  off
+  InitialState		  "xInitial"
+  SaveFinalState	  off
+  FinalStateName	  "xFinal"
+  SaveFormat		  "Matrix"
+  LimitMaxRows		  off
+  MaxRows		  "1000"
+  Decimation		  "1"
+  AlgebraicLoopMsg	  "warning"
+  MinStepSizeMsg	  "warning"
+  UnconnectedInputMsg	  "warning"
+  UnconnectedOutputMsg	  "warning"
+  UnconnectedLineMsg	  "warning"
+  InheritedTsInSrcMsg	  "warning"
+  IntegerOverflowMsg	  "warning"
+  UnnecessaryDatatypeConvMsg "none"
+  Int32ToFloatConvMsg	  "warning"
+  SignalLabelMismatchMsg  "none"
+  ConsistencyChecking	  "off"
+  ZeroCross		  on
+  SimulationMode	  "normal"
+  BlockDataTips		  on
+  BlockParametersDataTip  on
+  BlockAttributesDataTip  off
+  BlockPortWidthsDataTip  off
+  BlockDescriptionStringDataTip	off
+  BlockMaskParametersDataTip off
+  ToolBar		  on
+  StatusBar		  on
+  BrowserShowLibraryLinks off
+  BrowserLookUnderMasks	  off
+  OptimizeBlockIOStorage  on
+  BufferReuse		  on
+  BooleanDataType	  off
+  RTWSystemTargetFile	  "grt.tlc"
+  RTWInlineParameters	  off
+  RTWRetainRTWFile	  off
+  RTWTemplateMakefile	  "grt_default_tmf"
+  RTWMakeCommand	  "make_rtw"
+  RTWGenerateCodeOnly	  off
+  ExtModeMexFile	  "ext_comm"
+  ExtModeBatchMode	  off
+  ExtModeTrigType	  "manual"
+  ExtModeTrigMode	  "oneshot"
+  ExtModeTrigPort	  "1"
+  ExtModeTrigElement	  "any"
+  ExtModeTrigDuration	  1000
+  ExtModeTrigHoldOff	  0
+  ExtModeTrigDelay	  0
+  ExtModeTrigDirection	  "rising"
+  ExtModeTrigLevel	  0
+  ExtModeArchiveMode	  "off"
+  ExtModeAutoIncOneShot	  off
+  ExtModeIncDirWhenArm	  off
+  ExtModeAddSuffixToVar	  off
+  ExtModeWriteAllDataToWs off
+  ExtModeArmWhenConnect	  off
+  Created		  "Sat Feb 17 21:57:53 2001"
+  Creator		  "angel"
+  UpdateHistory		  "UpdateHistoryNever"
+  ModifiedByFormat	  "%<Auto>"
+  LastModifiedBy	  "angel"
+  ModifiedDateFormat	  "%<Auto>"
+  LastModifiedDate	  "Fri Feb 23 15:16:53 2001"
+  ModelVersionFormat	  "1.%<AutoIncrement:76>"
+  ConfigurationManager	  "none"
+  BlockDefaults {
+    Orientation		    "right"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    NamePlacement	    "normal"
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+    ShowName		    on
+  }
+  AnnotationDefaults {
+    HorizontalAlignment	    "center"
+    VerticalAlignment	    "middle"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  LineDefaults {
+    FontName		    "Helvetica"
+    FontSize		    9
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  System {
+    Name		    "GK_model"
+    Location		    [110, 206, 1232, 651]
+    Open		    on
+    ModelBrowserVisibility  off
+    ModelBrowserWidth	    200
+    ScreenColor		    "white"
+    PaperOrientation	    "landscape"
+    PaperPositionMode	    "auto"
+    PaperType		    "usletter"
+    PaperUnits		    "inches"
+    ZoomFactor		    "100"
+    AutoZoom		    on
+    ReportName		    "simulink-default.rpt"
+    Block {
+      BlockType		      Constant
+      Name		      "Constant"
+      Position		      [20, 55, 50, 85]
+      Value		      "60"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "Constant1"
+      Position		      [610, 295, 640, 325]
+      Value		      "12"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "Constant2"
+      Position		      [770, 160, 800, 190]
+      Value		      "1000"
+    }
+    Block {
+      BlockType		      Gain
+      Name		      "Gain"
+      Position		      [120, 55, 150, 85]
+      Gain		      "1"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Integrator
+      Name		      "Integrator"
+      Ports		      [1, 1, 0, 0, 0]
+      Position		      [560, 15, 590, 45]
+      ExternalReset	      "none"
+      InitialConditionSource  "internal"
+      InitialCondition	      "0.31769"
+      LimitOutput	      off
+      UpperSaturationLimit    "inf"
+      LowerSaturationLimit    "-inf"
+      ShowSaturationPort      off
+      ShowStatePort	      off
+      AbsoluteTolerance	      "auto"
+    }
+    Block {
+      BlockType		      Product
+      Name		      "Product"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [365, 117, 395, 148]
+      Inputs		      "2"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Product
+      Name		      "Product1"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [365, 57, 395, 88]
+      Inputs		      "2"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Product
+      Name		      "Product2"
+      Ports		      [5, 1, 0, 0, 0]
+      Position		      [685, 18, 730, 162]
+      Inputs		      "5"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Product
+      Name		      "Product3"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [800, 222, 835, 293]
+      Inputs		      "2"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Product
+      Name		      "Product4"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [820, 146, 855, 184]
+      Inputs		      "2"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "Scope"
+      Ports		      [1, 0, 0, 0, 0]
+      Position		      [795, 24, 825, 56]
+      Floating		      off
+      Location		      [319, 30, 643, 269]
+      Open		      on
+      NumInputPorts	      "1"
+      TickLabels	      "OneTimeTick"
+      ZoomMode		      "yonly"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      Grid		      "on"
+      TimeRange		      "20"
+      YMin		      "0"
+      YMax		      "0.04"
+      SaveToWorkspace	      off
+      SaveName		      "ScopeData"
+      DataFormat	      "StructureWithTime"
+      LimitMaxRows	      on
+      MaxRows		      "5000"
+      Decimation	      "1"
+      SampleInput	      off
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Scope
+      Name		      "Scope1"
+      Ports		      [1, 0, 0, 0, 0]
+      Position		      [895, 379, 925, 411]
+      Floating		      off
+      Location		      [686, 30, 1010, 269]
+      Open		      on
+      NumInputPorts	      "1"
+      TickLabels	      "OneTimeTick"
+      ZoomMode		      "yonly"
+      List {
+	ListType		AxesTitles
+	axes1			"%<SignalLabel>"
+      }
+      Grid		      "on"
+      TimeRange		      "20"
+      YMin		      "0"
+      YMax		      "0.04"
+      SaveToWorkspace	      off
+      SaveName		      "ScopeData"
+      DataFormat	      "StructureWithTime"
+      LimitMaxRows	      on
+      MaxRows		      "5000"
+      Decimation	      "1"
+      SampleInput	      off
+      SampleTime	      "0"
+    }
+    Block {
+      BlockType		      Sum
+      Name		      "Sum"
+      Ports		      [3, 1, 0, 0, 0]
+      Position		      [475, 20, 495, 40]
+      ShowName		      off
+      IconShape		      "round"
+      Inputs		      "|+--"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      Sum
+      Name		      "Sum1"
+      Ports		      [2, 1, 0, 0, 0]
+      Position		      [695, 260, 715, 280]
+      ShowName		      off
+      IconShape		      "round"
+      Inputs		      "|-+"
+      SaturateOnIntegerOverflow	on
+    }
+    Block {
+      BlockType		      ToFile
+      Name		      "To File2"
+      Position		      [880, 130, 940, 160]
+      Filename		      "data/Gk_120.mat"
+      MatrixName	      "Gk"
+      Decimation	      "1"
+      SampleTime	      "-1"
+    }
+    Block {
+      BlockType		      ToFile
+      Name		      "To File3"
+      Position		      [890, 310, 950, 340]
+      Filename		      "data/Ik_120.mat"
+      MatrixName	      "Ik"
+      Decimation	      "1"
+      SampleTime	      "-1"
+    }
+    Block {
+      BlockType		      Fcn
+      Name		      "an"
+      Position		      [235, 50, 295, 80]
+      Expr		      "0.01*(u[1]+10)/(exp((u[1]+10)/10)-1)"
+    }
+    Block {
+      BlockType		      Fcn
+      Name		      "bn"
+      Position		      [235, 125, 295, 155]
+      Expr		      "0.125*exp(u[1]/80)"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "maximum of Gk"
+      Position		      [610, 135, 640, 165]
+      Value		      "36.0e-3"
+    }
+    Block {
+      BlockType		      Outport
+      Name		      "Out1"
+      Position		      [835, 83, 865, 97]
+      Port		      "1"
+      OutputWhenDisabled      "held"
+      InitialOutput	      "[]"
+    }
+    Block {
+      BlockType		      Outport
+      Name		      "Out2"
+      Position		      [870, 258, 900, 272]
+      Port		      "2"
+      OutputWhenDisabled      "held"
+      InitialOutput	      "[]"
+    }
+    Line {
+      SrcBlock		      "bn"
+      SrcPort		      1
+      DstBlock		      "Product"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "an"
+      SrcPort		      1
+      Points		      [25, 0]
+      Branch {
+	DstBlock		"Product1"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, -47]
+	DstBlock		"Sum"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Product1"
+      SrcPort		      1
+      Points		      [64, 0]
+      DstBlock		      "Sum"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Product"
+      SrcPort		      1
+      Points		      [85, 0]
+      DstBlock		      "Sum"
+      DstPort		      3
+    }
+    Line {
+      SrcBlock		      "Sum"
+      SrcPort		      1
+      DstBlock		      "Integrator"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Integrator"
+      SrcPort		      1
+      Points		      [15, 0]
+      Branch {
+	Points			[0, 70; -265, 0]
+	Branch {
+	  Points		  [0, -20]
+	  DstBlock		  "Product1"
+	  DstPort		  2
+	}
+	Branch {
+	  Points		  [0, 25]
+	  DstBlock		  "Product"
+	  DstPort		  1
+	}
+      }
+      Branch {
+	Points			[45, 0]
+	Branch {
+	  Points		  [0, 0]
+	  DstBlock		  "Product2"
+	  DstPort		  1
+	}
+	Branch {
+	  Points		  [0, 30]
+	  Branch {
+	    Points		    [0, 0]
+	    DstBlock		    "Product2"
+	    DstPort		    2
+	  }
+	  Branch {
+	    Points		    [0, 30]
+	    Branch {
+	      Points		      [0, 0]
+	      DstBlock		      "Product2"
+	      DstPort		      3
+	    }
+	    Branch {
+	      DstBlock		      "Product2"
+	      DstPort		      4
+	    }
+	  }
+	}
+      }
+    }
+    Line {
+      SrcBlock		      "maximum of Gk"
+      SrcPort		      1
+      DstBlock		      "Product2"
+      DstPort		      5
+    }
+    Line {
+      SrcBlock		      "Gain"
+      SrcPort		      1
+      Points		      [55, 0]
+      Branch {
+	Points			[10, 0]
+	DstBlock		"an"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 70]
+	DstBlock		"bn"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Product2"
+      SrcPort		      1
+      Points		      [25, 0]
+      Branch {
+	Points			[0, -50]
+	DstBlock		"Scope"
+	DstPort			1
+      }
+      Branch {
+	DstBlock		"Out1"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 65]
+	DstBlock		"Product4"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Constant"
+      SrcPort		      1
+      Points		      [30, 0]
+      Branch {
+	DstBlock		"Gain"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 200]
+	DstBlock		"Sum1"
+	DstPort			1
+      }
+    }
+    Line {
+      SrcBlock		      "Constant1"
+      SrcPort		      1
+      Points		      [60, 0]
+      DstBlock		      "Sum1"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Sum1"
+      SrcPort		      1
+      Points		      [65, 0]
+      DstBlock		      "Product3"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Product3"
+      SrcPort		      1
+      Points		      [0, 5]
+      Branch {
+	Points			[0, -5; 15, 0]
+	DstBlock		"Out2"
+	DstPort			1
+      }
+      Branch {
+	Points			[0, 60; 20, 0]
+	Branch {
+	  DstBlock		  "To File3"
+	  DstPort		  1
+	}
+	Branch {
+	  Points		  [0, 70]
+	  DstBlock		  "Scope1"
+	  DstPort		  1
+	}
+      }
+    }
+    Line {
+      SrcBlock		      "Constant2"
+      SrcPort		      1
+      DstBlock		      "Product4"
+      DstPort		      2
+    }
+    Line {
+      SrcBlock		      "Product4"
+      SrcPort		      1
+      Points		      [0, 0]
+      Branch {
+	Points			[5, 0]
+	DstBlock		"To File2"
+	DstPort			1
+      }
+      Branch {
+	Points			[10, 0; 0, 45; -85, 0]
+	DstBlock		"Product3"
+	DstPort			1
+      }
+    }
+  }
+}

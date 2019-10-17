@@ -1,0 +1,101 @@
+%
+%function [Tau,Raa,Rab,Rpp,Rmodel,sigmag,pg,lambdag,sigma,p,lambda]=jittercorrfit(spetA,spetB,Fs,Fsd,T,MaxTau,Disp)
+%
+%   FILE NAME   : JITTER CORR FIT
+%   DESCRIPTION : Correlation model to fit Cross-Channel correlation
+%                 from RASTERGRAM by a Gaussian function.
+%
+%   spetA       : Spike train ISI array - trial A
+%   spetB       : Spike train ISI array - trail B
+%   Fs          : Sampling rate for spetA and spetB
+%   Fsd         : Sampling rate for correlation measurement
+%   T           : Recording time interval in seconds
+%   MaxTau      : Maximum Correlation Delay (sec)
+%   Disp        : Display Output (Optional; Default='n')
+%
+%Returned Variables
+%
+%       Tau         : Delay Axis
+%       Raa         : Autocorrelation
+%       Rab         : Crosscorrelation
+%       Rpp         : Raw Data Jitter Distribution Correlation
+%       Rmodel      : Model Fitted Jitter Distribution Correlation
+%       sigmag      : Spike timing jitter - Gaussian Estimate
+%       pg          : Trial reproducibility - Gaussian Estimate
+%       lambdag     : Hypothetical spike rate - Gaussian Estimate
+%                     (Assumesno jitter or trial reprodicibility errors)
+%       sigma       : Spike Timing Jitter - Direct Estimate
+%       p           : Trial reproducibility - Direct Estimate
+%       lambda      : Hypothetical Spike rate - Direct Estimate
+%                     (Assumes no jitter or rial reprodicibility errors)
+%
+% (C) Monty A. Escabi, July 2006 (Last Edit)
+%
+function [Tau,Raa,Rab,Rpp,Rmodel,sigmag,pg,lambdag,sigma,p,lambda]=jittercorrfit(spetA,spetB,Fs,Fsd,T,MaxTau,Disp)
+
+%Input Arguments
+if nargin<7
+	Disp='n';
+end
+
+%Estimating auto and cross correlations
+[Rab]=xcorrspike(spetA,spetB,Fs,Fsd,MaxTau,'n','n','n');
+[Raa]=xcorrspike(spetA,spetA,Fs,Fsd,MaxTau,'n','n','n');
+[Rbb]=xcorrspike(spetB,spetB,Fs,Fsd,MaxTau,'n','n','n');
+Raa=(Raa+Rbb)/2;
+
+%Estimating Mean Spike Rate
+lambda=(length(spetA)+length(spetB))/2/T;
+
+%Estimating Jitter Correlation Function
+N=(length(Raa)-1)/2;
+%Raa(N+1)=Raa(N+1)-lambda*Fsd;
+Raa(N+1)=0;
+Rpp=Rab-Raa;
+Tau=(-N:N)/Fsd;
+
+%Fitting Gaussian Jitter Model to Rpp
+[Rmodel,Rpeak,sigmag]=corrmodelfit(Rpp,Tau,'n');
+[Rmodel]=corrmodel([Rpeak sigmag],Tau);
+
+%Finding Optimal Jitter and Reproducibility Parameter
+sigmag=sigmag/1000;			%Convert to Sec for evaluating p
+pg=Rpeak/lambda*sqrt(4*pi*sigmag^2);
+sigmag=sigmag*1000;			%Convert back to msec
+    
+%Direct Estimate of Jitter and Reliability
+Ncenter=(length(Rpp)-1)/2+1;
+dN=min(max(find(Rpp>1/2*max(Rpp)))-Ncenter,floor((Ncenter-1)/6));   %Makes sure the 1/2 duration 
+                                                                    %does not exceed the number of samples
+if dN==0    %In case jitter is too tight
+   dN=1; 
+end
+Rpp2=Rpp(Ncenter-dN*6:Ncenter+dN*6);    %Select segment 12 half heights wide relative to center
+Tau2=Tau(Ncenter-dN*6:Ncenter+dN*6);
+Mean=sum(Tau2.*Rpp2/sum(Rpp2));
+sigma=sqrt(sum((Tau2-Mean).^2.*Rpp2/sum(Rpp2)));
+sigma=sigma*1000/sqrt(2);       %Divide by sqrt(2) because correlation is sqrt(2) as wide as jitter    
+p=sum(Rpp2)/Fsd/lambda;
+
+%Hypothetical Spike Rate
+lambdag=lambda/pg;
+lambda=lambda/p;
+    
+%Plotting Results
+if strcmp(Disp,'y')
+	subplot(211)
+	plot(Tau*1000,Raa)
+	hold on
+	plot(Tau*1000,Rab,'r')
+	ylabel('Raa (blue), Rab (red)')
+	hold off
+
+	subplot(212)
+	plot(Tau*1000,Rpp)
+	xlabel('Delay (msec)')
+	ylabel('Rpp - Jitter Correlation')
+	hold on
+	plot(Tau*1000,Rmodel,'r')
+	hold off
+	pause(0)
+end

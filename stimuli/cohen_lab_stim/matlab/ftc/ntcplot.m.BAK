@@ -1,0 +1,116 @@
+function []=multi_ntcplot(minlat,maxlat,varargin)
+
+%plots tuning curves along the diagonal, to correspond with an autocorrelogram figure diagonal.
+% varargin are ntc.mat filenames, IN ORDER of plotting.  All ntc.mat files for those files will
+% be plotted.
+%
+%		[]=multi_ntcplot(minlat,maxlat,filename,filename,...);
+
+
+%minlat=6;
+%maxlat=20;
+NFREQS = 45;                            % # of frequencies in tuning curve
+NAMPS = 15;                             % # of amplitudes in tuning curve
+
+plots = 0;
+filenames = {};
+for k = 1:length(varargin)		%count the total number of plots to make
+      uloc = min(findstr(varargin{k},'u'));
+      unitcounter = 1;
+      queryfile = [varargin{k}(1:uloc) num2str(1) varargin{k}(uloc+2:length(varargin{k}))];
+      while exist(queryfile) == 2
+         filenames{length(filenames)+1} = queryfile;
+         unitcounter = unitcounter +1;
+         plots = plots + 1;
+         queryfile = [varargin{k}(1:uloc) num2str(unitcounter) varargin{k}(uloc+2:length(varargin{k}))];
+      end
+end
+
+% if there are too many plots, break them up into two figures
+if plots>8
+   m = floor(plots/2);
+   n = plots - m;  
+   index_array = [1 n;
+                  m+1 plots];
+   numfigs=2;
+else
+   index_array = [1 plots];
+   numfigs=1;   
+end
+
+plot_loc = 1;
+for i = 1:numfigs		%load up files and plot each, along the diagonal
+   jstart = index_array(i,1);
+   jend = index_array(i,2);
+   figure;set(gcf,'Position',[10 150 1200 700]);
+   plots = jend-jstart+1;
+   for j = jstart:jend
+   filein = filenames{j};
+   eval(['load ' filein]);
+   subplot(plots,plots,((j-jstart+1)-1)*plots+(j-jstart+1));
+   inRange = find(latencies(:,1)<=maxlat);
+   inRange = find(minlat<=latencies(inRange,1));
+
+   numInRange = length(inRange);
+   dataMat = zeros(NFREQS,NAMPS);
+
+   for ii=1:numInRange,
+      dataMat(latencies(inRange(ii),2),latencies(inRange(ii),3)) = ...
+         dataMat(latencies(inRange(ii),2),latencies(inRange(ii),3)) + 1;
+   end
+   % pcolor, doesn't use the last row and column of the 
+   %    matrix for plotting, so add on extra ones.
+
+   displayMat = [dataMat, dataMat(:,NAMPS); ...
+                dataMat(NFREQS,:), dataMat(NFREQS,NAMPS)];
+
+   DISP_DEFAULT_AMPS = 2.5+((0:15)-0.5)*5; % (5 dB steps);
+   fmmax = fMin*(2^((nOctaves*(NFREQS-0.5))/(NFREQS-1)));
+   fmmin = fMin*(2^(nOctaves*(-0.5)/(NFREQS-1)));
+   dispFreqs = logspace(log10(fmmin), log10(fmmax),NFREQS+1);
+   dispAmps = DISP_DEFAULT_AMPS;
+
+   view([0 90]);
+
+   displayMat = smoothDisplay(displayMat);
+
+   pcolor(dispFreqs,dispAmps,displayMat');
+   shading flat;
+   set(gca,'xscale','log');
+   set(gca,'yscale','linear');
+   set(gca,'tickdir','out');
+   set(gca,'ytickmode','auto');
+   set(gca,'yticklabelmode','auto');
+   xlabel('freq. (kHz)');
+   ylabel('intens. (dB)');
+
+   chloc = findstr(filein,'ch');
+   uloc = findstr(filein,'u');
+   titlestr = [filein(chloc:chloc+2) filein(uloc:uloc+1)];
+   title(titlestr);
+
+   tickRange = 10.^(floor(log10(dispFreqs(1))):floor(log10(dispFreqs(end))));
+   xTickPos = [1 2 5]'*tickRange;
+   xTickPos = [xTickPos(:); 10*tickRange(end)];
+   ii = find(xTickPos>dispFreqs(1) & xTickPos<dispFreqs(end));
+   xTickPos = xTickPos(ii);
+   set(gca,'xtick', xTickPos);
+
+   scaleMax = max(displayMat(:));
+
+   colorbar('vert');
+
+   plot_loc = plot_loc + (plots + 1);
+
+   clear latencies dataMat displayMat;
+   end %for j
+   
+   chloc = findstr(filenames{1},'ch');
+   g=uicontrol(gcf,'Style','text','Units','Normalized', ...
+      'Position',[.65 .9 .3 .03], ...
+      'FontSize',16,...
+      'String',[filenames{1}(1:(chloc-2)) '    ' num2str(minlat) '-' num2str(maxlat) 'ms    Fig.' ...
+                  num2str(i) ' of ' num2str(numfigs)]);
+end %for i
+
+

@@ -1,0 +1,439 @@
+%function [STRFm,STRFam,STRFbm,STRFa,STRFb,x0,w,sf0,spectrop,t0,c,tf0,q,
+%belta,Enoise,E,Es,Ea,Eb,Em,Eam,Ebm,Errs,SNR,SIas,SIat,SIbs,SIbt,SIm,SIms,Elpsa,Elpsb,Elpta,
+%Elptb,flag,flag_STRFbm,alpha_svd,alpha_d]=
+%strfmodel_ctx(STRF,STRFs,taxis,faxis,PP,Tresh,display);
+%
+%
+%Function
+%            Using Gabor function to fit STRF
+%Input
+%          STRF       the STRF that want to be fitted
+%          STRFs      the significant STRFs that is relative to STRF
+%          taxis      time sequence
+%          faxis      frequency sequence
+%          PP         Power level that is used to calculate energy
+%          Tresh     Threshold that comes from wstrfstat.m
+%          display    'y'  display the result
+%                     'n'  do not show figures
+%                     default is 'y'
+%Output  
+%          STRFm      the fitting STRF
+%          STRFam     the fitting STRF coming from the first eigen value
+%          STRFbm     the fitting STRF coming from the second eigen value
+%          STRFa     the STRF coming from the first eigen value
+%          STRFb     the STRF coming from the second eigen value
+%          x0         the central position of the spectral evenlope
+%          w          the width of the spectral evenlope
+%          sf0        the best ripple density
+%          spectrop   spectral phase
+%          t0         the central position of the temporal evenlope
+%          c          the width of the temporal evenlope
+%          tf0        the best modulation frequency in strfmodel_ic.m
+%                     the line along which the temporal frequency changes with time in strfmodel_ctx.m
+%          q          the temporal phase
+%          belta      the skewness of temporal evenlope. 
+%                     In strfmodel_ic, the function is 2*actan(belta*taxis)
+%                     In strfmodel_ctx, belta is the array in order to map taxis to a new time axis.
+%          Enoise     the energy of noise that is in STRF
+%          E          the energy of STRF
+%          Es         the energy of STRFs
+%          Ea         the energy of STRFa
+%          Eb         the energy of STRFb
+%          Em         the energy of STRFm
+%          Eam        the energy of STRFam
+%          Ebm        the energy of STRFbm
+%          Errs       the error between fitting STRF and STRFm
+%          SNR        the signal to noise ratio
+%          SIat       Similarity index between temporal fitting line and original temporal line for the first eigenvalue
+%          SIbt       Similarity index between temporal fitting line and original temporal line for the second eigenvalue
+%          SIas       Similarity index between spectral fitting line and original spectral line for the first eigenvalue
+%          SIbs       Similarity index between spectral fitting line and original spectral line for the second eigenvalue
+%          SIm        the similarity index between STRFm and STRF
+%          SIms       the similarity index between STRFm and STRFs
+%          Elpsa      the spectral evenlope for STRFa
+%          Elpsb      the spectral evenlope for STRFb
+%          Elpta      the temporal evenlope for STRFa
+%          Elptb      the temporal evenlope for STRFb
+%          flag       '0' this model can not be decomposed by svd. '1'  goog fit
+%          flag_STRFbm   '0' no STRFbm; '1' STRFbm
+%          alpha_svd  degree of inseparability, alpha_svd=1-S(1,1)^2/sum(diag(S).^2), alpha_svd=0, STRF is separable
+%          alpha_d    the relative power of the first and second eigen values.  alpha_d=(Eb-Eab)/(Eb+Ea)
+%
+%Definition
+%      a and b correspond to the first and second eigen value,respectively.
+%      E* expresses energy
+%      *m  describes the fitting result
+%      Elp* the evenlope
+%
+%
+%   ANQI QIU
+%   11/12/2001
+
+
+
+function [STRFm,STRFam,STRFbm,STRFa,STRFb,x0,w,sf0,spectrop,t0,c,tf0,q,belta,Enoise,E,Es,Ea,Eb,Em,Eam,Ebm,Errs,SNR,SIas,SIat,SIbs,SIbt,SIm,SIms,Elpsa,Elpsb,Elpta,Elptb,flag,flag_STRFbm,alpha_svd,alpha_d]=strfmodel_ctx(STRF,STRFs,taxis,faxis,PP,Tresh,display);
+
+
+
+if nargin<7
+   display='y';
+end;
+
+%to initialize parameters
+STRFam=0;
+STRFbm=0;
+STRFm=zeros(size(STRF));
+STRFa=0;
+STRFb=0;
+flag=1;
+flag_STRFbm=1;
+STRFam=0;
+STRFbm=0;
+x0=0;
+w=0;
+sf0=0;
+spectrop=0;
+t0=0;
+c=0;
+tf0=0;
+q=0;
+belta=zeros(2,length(taxis));
+Enoise=0;
+E=0;
+Es=0;
+Ea=0;
+Eb=0;
+Em=0;
+Eam=0;
+Ebm=0;
+Errs=0;
+SNR=0;
+SIas=0;
+SIat=0;
+SIbs=0;
+SIbt=0;
+SIm=0;
+SIms=0;
+Elpsa=0;
+Elpsb=0;
+Elpta=0;
+Elptb=0;
+alpha_svd=0;
+alpha_d=0;
+%to change the scale of taxis from negative to positive
+if taxis(1)<0
+   taxis=taxis-taxis(1);
+end;
+%singular value decomposition
+try
+   [U,S,V]=svd(STRF);
+catch
+   flag=0;
+   flag_STRFbm=0;
+   return;
+end
+S1=zeros(size(STRF));
+S2=zeros(size(STRF));
+S1(1,1)=S(1,1);
+S2(2,2)=S(2,2);
+STRFa=U*S1*V';
+STRFb=U*S2*V';
+clear S1 S2 V U;
+
+%Define Zero-Valued STRF
+STRF0=zeros(size(STRF));
+%Define Temporal Sampling Rate
+Fst=1/(taxis(2)-taxis(1));
+xaxis=log2(faxis/500);
+%to calculate energy of STRF noise (STRF-STRFs)
+%the energy of the first eigen value STRF
+Ea=strfstd(STRFa,STRF0,PP,Fst);
+%the energy of the second eigen value STRF
+Eb=strfstd(STRFb,STRF0,PP,Fst);
+%the energy of significant STRF
+Es=strfstd(STRFs,STRF0,PP,Fst);
+E=strfstd(STRF,STRF0,PP,Fst);
+if E==0
+   flag=0;
+   flag_STRFbm=0;
+	return;
+end;
+
+%to calculate SNR
+Enoise=Tresh/3.1;            
+SNR=Es/Enoise;
+%to calculate alpha_svd and alpha_d
+alpha_svd=1-S(1,1)^2/(diag(S).^2);
+alpha_d=(Eb-Ea)/(Eb+Ea);
+
+%*************************************************************************************
+%                                 The First Eigenvalue
+%*************************************************************************************
+%Extraxtion of parameters for the first part STRF1
+%to find the sf0 and tf0 for the first part STRF1
+[Fm1,RD1,RTF1]=strf2rtf(taxis,faxis,STRFa,300,4,'n');
+[BestFm,BestRD]=rtfparam(Fm1,RD1,RTF1,0.5,'n');	
+% In the spectral dimension
+%to find spectral envelope and create Gaussian function
+Tpeak1=find(sum(abs(STRFa))==max(sum(abs(STRFa))));
+Fpeak1=find(sum(abs(STRFa'))==max(sum(abs(STRFa'))));
+Elpsa=abs(hilbert(STRFa(:,Tpeak1)));
+x0(1)=xaxis(find(Elpsa==max(Elpsa)));
+w(1)=xaxis(max(find(Elpsa>=exp(-1)*max(Elpsa))))-xaxis(min(find(Elpsa>=exp(-1)*max(Elpsa))));
+%to find parameters for sinusoid wave in Gabor function
+sf0(1)=abs(BestRD(1));
+spectrop(1)=2*pi*sf0(1)*(x0(1)-xaxis(Fpeak1));
+%using Gauss-Newton method to fit STRFa(:,Tpeak1)
+betas0(1)=x0(1);                   %the center of spectral envelope
+betas0(2)=w(1);                    %the width of Gaussian function for the spectral part
+betas0(3)=sf0(1);                  %the spectral frequency
+betas0(4)=spectrop(1);             %the spectral phase
+betas0(5)=max(abs(STRFa(:,Tpeak1)));    %the gain 
+warning off;
+%betas=nlinfit(xaxis,STRFa(:,Tpeak1),'spectrofit',betas0);
+ydata=STRFa(:,Tpeak1);
+betas=lsqcurvefit('spectrofit',betas0,xaxis,ydata');
+
+%to compare error from intitial parameters with that from fitting parameters
+Temp_elpsa1=betas0(5)*(exp(-(2*(xaxis-betas0(1))/betas0(2)).^2).*cos(2*pi*betas0(3)*(xaxis-betas0(1))+betas0(4)));
+Temp_elpsa2=betas(5)*(exp(-(2*(xaxis-betas(1))/betas(2)).^2).*cos(2*pi*betas(3)*(xaxis-betas(1))+betas(4)));
+T=num2str(Temp_elpsa2);
+T1=num2str(zeros(1,length(Temp_elpsa2)));
+if (sum((Temp_elpsa1-STRFa(:,Tpeak1)').^2)>sum((Temp_elpsa2-STRFa(:,Tpeak1)').^2)) & (~strcmp(T,T1))
+   x0(1)=betas(1);
+   w(1)=betas(2);
+   if betas(3)<0
+      sf0(1)=-betas(3);
+      spectrop(1)=-betas(4);
+   else
+      sf0(1)=betas(3);
+      spectrop(1)=betas(4);
+   end;     
+   k(1,1)=betas(5);
+   SIas=mean((Temp_elpsa2'-mean(Temp_elpsa2')).*(ydata-mean(ydata)))/sqrt((var(Temp_elpsa2)+mean(Temp_elpsa2)^2)*(var(ydata)+mean(ydata)^2)); 
+else
+   x0(1)=betas0(1);
+   w(1)=betas0(2);
+   if betas0(3)<0
+      sf0(1)=-betas0(3);
+      spectrop(1)=-betas0(4);
+   else
+      sf0(1)=betas0(3);
+      spectrop(1)=betas0(4);
+   end;     
+   k(1,1)=betas0(5);
+   SIas=mean((Temp_elpsa1'-mean(Temp_elpsa1')).*(ydata-mean(ydata)))/sqrt((var(Temp_elpsa1)+mean(Temp_elpsa1)^1)*(var(ydata)+mean(ydata)^2));
+end
+clear Temp_elpsa1 Temp_elpsa2 betas0 betas ydata T T1; 
+
+%the temporal dimesion for the first eigenvalue
+%to find temporal envelope and create Gaussian function
+Elpta=abs(hilbert(STRFa(Fpeak1,:)));
+t0(1)=taxis(find(Elpta==max(Elpta)));
+c(1)=taxis(max(find(Elpta>=exp(-1)*max(Elpta))))-taxis(min(find(Elpta>=exp(-1)*max(Elpta))));
+taxis1=[-fliplr(taxis) taxis];
+gau_Elpta=exp(-(2*(taxis1-t0(1))/c(1)).^2);
+[taxisshift]=timeshift(gau_Elpta,Elpta,taxis1);
+Gau_coeff=polyfit(taxis,taxisshift,3);
+tphase=unwrap(angle(hilbert(STRFa(Fpeak1,:))));
+imax=max(find(Elpta>=exp(-1.5)*max(Elpta)));
+imin=min(find(Elpta>=exp(-1.5)*max(Elpta)));
+Cos_coeff=polyfit(taxis(imin:imax),tphase(imin:imax),2);
+%to find parameters for sinusoid wave in Gabor fuction
+tf0(1,1:length(taxis))=Cos_coeff(1)/2/pi*taxis+Cos_coeff(2)/2/pi+Cos_coeff(1)*t0(1)/2/pi;
+q(1)=Cos_coeff(3)+Cos_coeff(2)*t0(1)+Cos_coeff(1)*(t0(1)^2);
+belta(1,:)=Gau_coeff(1)*taxis.^3+Gau_coeff(2)*taxis.^2+Gau_coeff(3)*taxis+Gau_coeff(4);
+Temp_elpta=k(1,1)*exp(-(2*(belta(1,:)-t0(1))/c(1)).^2).*cos(2*pi*tf0(1,:).*(taxis-t0(1))+q(1));
+SIat=mean((Temp_elpta-mean(Temp_elpta)).*(STRFa(Fpeak1,:)-mean(STRFa(Fpeak1,:))))/sqrt((var(Temp_elpta)+mean(Temp_elpta)^1)*(var(STRFa(Fpeak1,:))+mean(STRFa(Fpeak1,:))^2));
+clear Temp_elpta;
+
+%to calculate STRFam from the first eigen value
+if STRFa(Fpeak1,Tpeak1)<0
+   STRFam=-k(1,1)*(exp(-(2*(xaxis-x0(1))/w(1)).^2).*cos(2*pi*sf0(1)*(xaxis-x0(1))+spectrop(1)))'*(exp(-(2*(belta(1,:)-t0(1))/c(1)).^2).*cos(2*pi*tf0(1,:).*(taxis-t0(1))+q(1)));%Cos_coeff(1)*taxis.^2+Cos_coeff(2)*taxis+Cos_coeff(3)));
+else
+   STRFam=k(1,1)*(exp(-(2*(xaxis-x0(1))/w(1)).^2).*cos(2*pi*sf0(1)*(xaxis-x0(1))+spectrop(1)))'*(exp(-(2*(belta(1,:)-t0(1))/c(1)).^2).*cos(2*pi*tf0(1,:).*(taxis-t0(1))+q(1)));%Cos_coeff(1)*taxis.^2+Cos_coeff(2)*taxis+Cos_coeff(3)));
+end;
+   
+%STRFam=STRFam/max(max(STRFam))*k(1,1);
+
+%****************************************************************
+%                   the second eigenvalue
+%****************************************************************
+if Eb>Enoise
+  	%Extraxtion of parameters for the second part STRF2
+	%to find the sf0 and tf0 for the second part STRF2
+	[Fm2,RD2,RTF2]=strf2rtf(taxis,faxis,STRFb,300,4,'n');	
+   [BestFm,BestRD]=rtfparam(Fm2,RD2,RTF2,0.5,'n');
+   %the spectral dimension for the second eigen value
+	%to find spectral envelope and create Gaussian function
+	Tpeak2=find(sum(abs(STRFb))==max(sum(abs(STRFb))));
+	Fpeak2=find(sum(abs(STRFb'))==max(sum(abs(STRFb'))));
+	Elpsb=abs(hilbert(STRFb(:,Tpeak2)));
+	x0(2)=xaxis(find(Elpsb==max(Elpsb)));
+	w(2)=xaxis(max(find(Elpsb>=exp(-1)*max(Elpsb))))-xaxis(min(find(Elpsb>=exp(-1)*max(Elpsb))));
+	%to find parameters for sinusoid wave in Gabor function
+	sf0(2)=abs(BestRD(1));
+  	spectrop(2)=2*pi*sf0(2)*(x0(2)-xaxis(Fpeak2));
+  	%using Gauss-Newton method to fit STRFb(:,Tpeak2)
+	betas0(1)=x0(2);                    %the center of spectral envelope
+	betas0(2)=w(2);                     %the width of Gaussian function for the spectral part
+	betas0(3)=sf0(2);                   %the spectral frequency
+	betas0(4)=spectrop(2);              %the spectral phase
+	betas0(5)=max(abs(STRFb(:,Tpeak2)));    %the gain 
+   %betas=nlinfit(xaxis,STRFb(:,Tpeak2),'spectrofit',betas0);
+   ydata=STRFb(:,Tpeak2);
+	betas=lsqcurvefit('spectrofit',betas0,xaxis,ydata');
+   %to compare error from intitial parameters with that from fitting parameters
+	Temp_elpsa1=betas0(5)*(exp(-(2*(xaxis-betas0(1))/betas0(2)).^2).*cos(2*pi*betas0(3)*(xaxis-betas0(1))+betas0(4)));
+   Temp_elpsa2=betas(5)*(exp(-(2*(xaxis-betas(1))/betas(2)).^2).*cos(2*pi*betas(3)*(xaxis-betas(1))+betas(4)));
+   T=num2str(Temp_elpsa2);
+   T1=num2str(zeros(1,length(Temp_elpsa2)));
+	if (sum((Temp_elpsa1-STRFb(:,Tpeak2)').^2)>sum((Temp_elpsa2-STRFb(:,Tpeak2)').^2)) & (~strcmp(T,T1))
+      x0(2)=betas(1);
+      w(2)=betas(2);
+   	if betas(3)<0
+         sf0(2)=-betas(3);
+    		spectrop(2)=-betas(4);
+   	else
+         sf0(2)=betas(3);
+     		spectrop(2)=betas(4);
+   	end;     
+      k(2,1)=betas(5);
+      SIbs=mean((Temp_elpsa2'-mean(Temp_elpsa2')).*(ydata-mean(ydata)))/sqrt((var(Temp_elpsa2)+mean(Temp_elpsa2)^2)*(var(ydata)+mean(ydata)^2)); 
+   else
+      x0(2)=betas0(1);
+      w(2)=betas0(2);
+   	if betas(3)<0
+         sf0(2)=-betas0(3);
+     		spectrop(2)=-betas0(4);
+   	else
+         sf0(2)=betas0(3);
+     		spectrop(2)=betas0(4);
+   	end;     
+      k(2,1)=betas0(5);
+      SIbs=mean((Temp_elpsa1'-mean(Temp_elpsa1')).*(ydata-mean(ydata)))/sqrt((var(Temp_elpsa1)+mean(Temp_elpsa1)^1)*(var(ydata)+mean(ydata)^2));
+   end;   
+	clear Temp_elpsa1 Temp_elpsa2 betas0 betas T T1;   
+   
+	%the temporal dimesion for the second eigenvalue
+	%to find temporal envelope and create Gaussian function
+	Elptb=abs(hilbert(STRFb(Fpeak2,:)));
+	t0(2)=taxis(find(Elptb==max(Elptb)));
+	c(2)=taxis(max(find(Elptb>=exp(-1)*max(Elptb))))-taxis(min(find(Elptb>=exp(-1)*max(Elptb))));
+	taxis1=[-fliplr(taxis) taxis];
+	gau_Elptb=exp(-(2*(taxis1-t0(2))/c(2)).^2);
+	[taxisshift]=timeshift(gau_Elptb,Elptb,taxis1);
+	Gau_coeff=polyfit(taxis,taxisshift,3);
+	tphase=unwrap(angle(hilbert(STRFb(Fpeak2,:))));
+	imax=max(find(Elptb>=exp(-1.5)*max(Elptb)));
+	imin=min(find(Elptb>=exp(-1.5)*max(Elptb)));
+	Cos_coeff=polyfit(taxis(imin:imax),tphase(imin:imax),2);
+	%to find parameters for sinusoid wave in Gabor fuction
+	tf0(2,1:length(taxis))=Cos_coeff(1)/2/pi*taxis+Cos_coeff(2)/2/pi+Cos_coeff(1)*t0(2)/2/pi;
+	q(2)=Cos_coeff(3)+Cos_coeff(2)*t0(2)+Cos_coeff(1)*(t0(2)^2);
+   belta(2,:)=Gau_coeff(1)*taxis.^3+Gau_coeff(2)*taxis.^2+Gau_coeff(3)*taxis+Gau_coeff(4);
+   
+   Temp_elptb=k(2,1)*exp(-(2*(belta(2,:)-t0(2))/c(2)).^2).*cos(2*pi*tf0(2,:).*(taxis-t0(2))+q(2));
+	SIbt=mean((Temp_elptb-mean(Temp_elptb)).*(STRFb(Fpeak2,:)-mean(STRFb(Fpeak2,:))))/sqrt((var(Temp_elptb)+mean(Temp_elptb)^1)*(var(STRFb(Fpeak2,:))+mean(STRFb(Fpeak2,:))^2));
+   clear Temp_elptb;  
+   if STRFb(Fpeak2,Tpeak2)<0,
+      STRFbm=-k(2,1)*(exp(-(2*(xaxis-x0(2))/w(2)).^2).*cos(2*pi*sf0(2)*(xaxis-x0(2))+spectrop(2)))'*(exp(-(2*(belta(2,:)-t0(2))/c(2)).^2).*cos(2*pi*tf0(2,:).*(taxis-t0(2))+q(2)));%Cos_coeff(1)*taxis.^2+Cos_coeff(2)*taxis+Cos_coeff(3)));
+   else
+      STRFbm=k(2,1)*(exp(-(2*(xaxis-x0(2))/w(2)).^2).*cos(2*pi*sf0(2)*(xaxis-x0(2))+spectrop(2)))'*(exp(-(2*(belta(2,:)-t0(2))/c(2)).^2).*cos(2*pi*tf0(2,:).*(taxis-t0(2))+q(2)));%Cos_coeff(1)*taxis.^2+Cos_coeff(2)*taxis+Cos_coeff(3)));
+   end;
+   
+	%STRFbm=STRFbm/max(max(STRFbm))*k(2,1);
+else
+   STRFbm=zeros(size(STRF));
+   flag_STRFbm=0;
+end
+
+
+
+
+STRFm=STRFam+STRFbm;
+%Energy of STRFm and error between STRFm and STRF 
+Em=strfstd(STRFm,STRF0,PP,Fst);	
+Eam=strfstd(STRFam,STRF0,PP,Fst);
+Ebm=strfstd(STRFbm,STRF0,PP,Fst);
+Errs=strfnorm(STRFs-STRFm,STRF0,PP)/strfnorm(STRFs,STRF0,PP);
+SIm=strfcorrcoef(STRF,STRFm);
+SIms=strfcorrcoef(STRFs,STRFm);
+
+%to display fitting results and spectral and temporal evenlopes
+if strcmp(display,'y')& flag==1
+	Max=max(max(abs(STRF)));
+	figure;
+	set(gcf,'Position',[98 28 779 660])
+	subplot(3,3,1);
+	imagesc(STRF,[-Max Max]), colorbar
+	set(gca,'YDir','normal')
+	title('Original STRF');   
+   subplot(3,3,2);
+  	Max=max(max(abs(STRFm)));
+	imagesc(STRFm,[-Max Max]), colorbar
+	set(gca,'YDir','normal')
+	title('Fit STRF');
+   subplot(3,3,3);
+  	Max=max(max(abs(STRF)));
+	imagesc(STRF-STRFm,[-Max Max]), colorbar
+	set(gca,'YDir','normal')
+	title('Error');
+   subplot(3,3,4);
+   Max=max(max(abs(STRFa)));
+	imagesc(STRFa,[-Max Max]), colorbar
+	set(gca,'YDir','normal')
+	title('The first eigenvalue(STRF1)');
+   subplot(3,3,5);
+  	Max=max(max(abs(STRFam)));
+	imagesc(STRFam,[-Max Max]), colorbar
+	set(gca,'YDir','normal')
+	title('Fit STRF1');
+   subplot(3,3,6);
+  	Max=max(max(abs(STRFa)));
+	imagesc(STRFa-STRFam,[-Max Max]), colorbar
+	set(gca,'YDir','normal')
+	title('Error');
+	if flag_STRFbm==1
+      subplot(3,3,7);
+      Max=max(max(abs(STRFb)));
+   	imagesc(STRFb,[-Max Max]), colorbar
+   	set(gca,'YDir','normal')
+   	title('The second eigenvalue(STRF2)');
+      subplot(3,3,8);
+     	Max=max(max(abs(STRFbm)));
+   	imagesc(STRFbm,[-Max Max]), colorbar
+   	set(gca,'YDir','normal')
+   	title('Fit STRF2');
+      subplot(3,3,9);
+     	Max=max(max(abs(STRFb)));
+   	imagesc(STRFb-STRFbm,[-Max Max]), colorbar
+   	set(gca,'YDir','normal')
+   	title('Error');
+	end;
+	figure;
+	subplot(221);
+	plot(STRFa(:,Tpeak1))
+	title('Spectral dimension for STRF1');
+	hold on
+	plot(STRFam(:,Tpeak1),'r')
+	subplot(222);
+	plot(STRFa(Fpeak1,:))
+	title('Temporal dimension for STRF1');
+	hold on
+	plot(STRFam(Fpeak1,:),'r')
+	if flag_STRFbm==1
+		subplot(223);
+		plot(STRFb(:,Tpeak2))
+		title('Spectral dimension for STRF2');
+		hold on
+		plot(STRFbm(:,Tpeak2),'r')
+		subplot(224);
+		plot(STRFb(Fpeak2,:))
+		title('Temporal dimension for STRF2');
+		hold on
+		plot(STRFbm(Fpeak2,:),'r')
+   end;
+end;
+
+   

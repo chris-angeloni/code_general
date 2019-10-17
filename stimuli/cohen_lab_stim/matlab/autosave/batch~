@@ -1,0 +1,25 @@
+outfile='DMR500HzMultiTrial'
+f1=1000
+f2=48000
+fRD=1
+fFM=1.5
+MaxRD=4
+MaxFm=500
+App=30
+Fs=96000
+M=Fs*7
+NS=
+NB=
+Axis='log'
+Block='n'
+DF=
+AmpDist=dB
+seed=1
+L=70   %Number of trials
+
+for k=1:L
+    filename=[outfile num2str(k)];
+    ripnoise(filename,f1,f2,fRD,fFM,MaxRD,MaxFM,App,M,Fs,NS,NB,Axis,Block,DF,AmpDist,seed)
+end
+
+

@@ -1,0 +1,9 @@
+// mexrascxcorrfft2.c
+// rmatrix = mexrascxcorrfft(RASv,ntrial);
+
+void mexrasfft2corrifft(double *rasifft, double *rasfft, unsigned long ntrial, unsigned long nsample)
+{
+int k;
+
+
+}

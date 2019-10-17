@@ -1,0 +1,210 @@
+absBandEdge.m:function edges = absBandEdge(dataCol, level);
+absBandEdge.m:%function edges = absBandEdge(dataCol, level);
+appendAttributes.m:function appendAttributes
+applyPrefs.m:function applyPrefs()
+bilogist.m:function y = bilogist(x, P);
+bilogist.m:%function y = bilogist(x, [p1 p2 p3 p4 p5])
+bumpFit.m:function [respFit, P] = bumpFit(logFreqs, respVals, logCF);
+bumpFit.m:%function [respFit P] = bumpFit(logFreqs, respVals, logCF);
+bumpFitMinFun.m:function f = bumpFitMinFun(P, x, y)
+bumpFitMinFun.m:% function f = bumpFitMinFun(P, x, y)
+bumpFitMinFun.m:% this function is used in a call to fmins to fit a peak with a
+bumpFitMinFun.m:% the function to minimize
+bumpFitMinFun.m:% to use constr, need to return g (constraints) as well.  
+compHeilParms.m:function paramHeil = compHeilParms(paramHeil0);
+compHeilParms.m:% function paramHeil = compHeilParms(paramHeil0);
+compSpontRate.m:function spontRate = compSpontRate
+compcondtcs.m:function allFileDiffs = compcondtcs(dirspec, filespec)
+compcondtcs.m:%function allFileDiffs = compcondtcs(dirspec, filespec)
+compcondtcs.m:%only latencies which do not match using both methods are returned
+compcondtcs.m:% column 1        latency read by the old function for a spike (in msec)
+compcondtcs.m:% column 4        latency read by the new function for that spike (in msec)
+deleteFig.m:function deleteFig
+doHist.m:function doHist
+doLatency.m:function doLatency
+doRate.m:function doRate
+dullButtons.m:function dullButtons
+dullButtons.m:% function dullButtons
+enterNewAtten.m:function enterNewAtten
+firstSigSpikes.m:function firstSigSpikeTimes = firstSigSpikes
+firstSigSpikes.m:% function firstSigSpikeTimes = firstSigSpikes
+funHeil.m:function f = funHeil(x,xdata)
+funHeil.m:% function f = funHeil(paramHeil,xdata)
+funHeil.m:% function used for computing Peter Heil's representation of onset latency
+funHeil.m:% should return values near [lmin; A; U]
+getNewAttribute.m:function value = getNewAttribute(type)
+getNewAttribute.m:% function value = getNewAttribute(type)
+getOSinfo.m:function [OStype, OSversion] = getOSinfo
+getOSinfo.m:% function [OStype, OSversion] = getOSinfo
+ginputUsingArrow.m:function [out1,out2,out3] = ginputUsingArrow(arg1)
+ginputUsingArrow.m:%   [X,Y] = GINPUT(N) gets N points from the current axes and returns 
+ginputUsingArrow.m:%   or any key on the keyboard except carriage return, which terminates
+ginputUsingArrow.m:%   return key is pressed.
+ginputUsingArrow.m:%   [X,Y,BUTTON] = GINPUT(N) returns a third result, BUTTON, that 
+ginputUsingArrow.m:                % if the return key was pressed, char will == 13,
+ginputUsingArrow.m:                % the <Return> key info in the return arrays.
+ginputUsingArrow.m:function key = wfbp
+gradHeil.m:function g = gradHeil(paramHeil,xdata)
+gradHeil.m:% function g = gradHeil(paramHeil,xdata)
+gradHeil.m:% should return values near [lmin; A; U]
+helpntc.m:function helpntc()
+histZoom.m:function histZoom
+histoAccept.m:function histoAccept
+histoMarkRadios.m:function histoMarkRadios
+histoRangeRadios.m:function histoRangeRadios
+histoRangeRadios.m:function histoMarkPk1st
+latencyRadios.m:function latencyRadios
+latencyZoom.m:function latencyZoom
+loadPrefs.m:function loadPrefs()
+loadPrefs.m:%function loadPrefs()
+logist.m:function y = logist(x, P);
+logist.m:% function logist(x, P);
+makeAmps.m:function amps = makeAmps
+makeAmps.m:% function amps = makeAmps;
+makeDataMat.m:function dataMat = makeDataMat(latencies,minLatency,maxLatency);
+makeDataMat.m:% function dataMat = makeDataMat(latencies,minLatency,maxLatency);
+makeDataMat.m:function dataMat = rmbkgnd(dataMat, spontRate)
+makeDataMat.m:%  function dataMat= rmbkgnd(dataMat, spontRate)
+makeDataMat.m:function smoothed_data = smoothDisplay(data)
+makeDataMat.m:% function smoothed_data = smoothDisplay(data)
+makeDataMat.m:function modMat = smooth2(dataMat)
+makeDataMat.m:function [nbrCnt, nbhdMean] = numNeighbors(a)
+makeDataMat.m:function modMat = smoothM(dataMat)
+makeDataMat.m:function [nbrCnt, nbhdMed] = numNeighborsM(a)
+makeDisplayMat.m:function [displayMat, dispFreqs, dispAmps] = makeDisplayMat(...
+makeDisplayMat.m:% function [displayMat, dispFreqs, dispAmps] = ...
+makeDotAxes.m:function [dataFreqs, tickFreqs] = makeDotAxes(fMin, nOctaves);
+makeDotAxes.m:% function [dataFreqs, tickFreqs] = makeDotAxes(fMin, nOctaves);
+makeFreqTicks.m:function xTickPos = makeFreqTicks(dispFreqs)
+makeFreqTicks.m:% function xTickPos = makeFreqTicks(dispFreqs)
+makePColorAxes.m:function [dispFreqs, dispAmps] = makePColorAxes(fMin, nOctaves, extAtten);
+makeQuiverAxes.m:function  [dispFreqs, dispAmps] = makeQuiverAxes(fMin, nOctaves, extAtten);
+makeQuiverAxes.m:%function  [dispFreqs, dispAmps] = makeQuiverAxes(fMin, nOctaves, extAtten);
+markEtcButton.m:function markEtcButton
+markOrZoomButton.m:function markOrZoomButton
+markSpontRange.m:function markSpontRange
+markStimRange.m:function markStimRange
+measure.m:function measure;
+measure.m:% function measure
+mkColHeaders.m:function colHeaders = mkColHeaders
+mkOldHeaders.m:function oldHeaders = mkOldHeaders
+modNTCFonts.m:function modNTCFonts(direction)
+modNTCFonts.m:%function modNTCFonts(direction)
+modPrefs.m:function modPrefs()
+moveButton.m:function moveButton
+moviePopup.m:function moviePopup
+nDoHist.m:function nDoHist()
+nDoLatency.m:function nDoLatency()
+nDoRate.m:function nDoRate()
+nDoTC.m:function fig = nDoTC()
+nanMed.m:function y = nanmed(x)
+ncondtc.m:function [latencies, header, fMin, nOctaves] = ncondtc(filename);
+ncondtc.m:% function [latencies, header, fMin, nOctaves] = ncondtc(filename);
+ncondtc.m:%%% **** this function does not work properly -- it is here for historical ****
+ncondtc.m:%  returns
+ncondtc2.m:function [latencies, header, fMin, nOctaves] = ncondtc2(filename);
+ncondtc2.m:% function [latencies, header, fMin, nOctaves] = ncondtc2(filename);
+ncondtc2.m:%  returns
+newDoTC.m:function fig = newDoTC()
+newDoTC.m:% function fig = newDoTC()
+ntc.m:function ntc()
+ntc.m:% function ntc
+pickHist.m:function pickHist
+pickLatency.m:function pickLatency
+pickRate.m:function pickRate
+pickSpontRange.m:function pickSpontRange
+pickSpontRange.m:finalRect = rbbox;		 % return Figure units
+pickStimRange.m:function pickStimRange
+pickStimRange.m:finalRect = rbbox;		 % return Figure units
+poisSigSpikes.m:function [firstSig, sigMat, spikeMat] = poisSigSpikes(sigPVal, halfWidth)
+poisSigSpikes.m:%function [firstSig, sigMat, spikeMat] = poisSigSpikes(sigPVal, halfWidth)
+printAxes.m:function printAxes()
+putNewAttribute.m:function putNewAttribute(type, value);
+rainbow.m:function colmap=rainbow(mapLength);
+rainbow.m:% function colmap=rainbow(mapLength);
+rateAccept.m:function rateAccept
+rateMarkRadios.m:function rateMarkRadios
+rateRangeRadios.m:function rateRangeRadios
+rateXing.m:function xingStimLevel = rateXing(dataCol, xingRate);
+rateXing.m:%function xingStimLevel = rateXing(dataCol, xingRate);
+readAndDisplayFile.m:function readAndDisplayFile;
+readAndDisplayFile.m:% function readAndDisplayFile
+readAndDisplayFile.m:function [unitNum, depth, extAttenC, extAttenI] = decode_header(header)
+readAndDisplayFile.m:function fileIndex = getFileIndex(filename)
+readAndDisplayFile.m:function loadBWmatfile(fullname)
+readAndDisplayFile.m:% function loadBWmatfile(fullname)
+readFileDialog.m:function readFileDialog;
+readFileDialog.m:% function readFileDialog
+readFileDialog.m:% return to the working directory
+readFileDialog.m:%%%------- function definitions
+readFileDialog.m:function [unitNum, depth, extAttenC, extAttenI] = decode_header(header)
+readFileDialog.m:function fileIndex = getFileIndex(inFile)
+readFileDialog.m:function loadBWmatfile(dataFile)
+readFileDialog.m:% function loadBWmatfile(dataFile)
+readNextFile.m:function readNextFile
+readNextFile.m:% function readNextFile
+readNextFile.m:%   and calls 'readAndDisplayFile' to read it.  N.B.:  For this function to work correctly, there
+readNextFile.m:% Thus we perform ridiculous gymnastics to sort the returned filenames in dictionary order...
+readTextData.m:function dataByColumns = readTextData(textDataFile)
+readTextData.m:% function dataByColumns = readTextData(textDataFile)
+readTextData.m:   if ~isstr(currentRow)  % end-of-file returns a -1 with fgetl
+refreshDisplay.m:function refreshDisplay
+refreshDisplay.m:function contourfTimeSlice(dispFreqs, dispAmps, displayMat);   
+refreshDisplay.m:function dotHistogram(latencies, tickFreqs, dataFreqs)
+refreshDisplay.m:% function dotHistogram(latencies, tickFreqs, dataFreqs)
+refreshDisplay.m:function dotHistogramI(latencies, lineAmps, dataAmps)
+refreshDisplay.m:% function dotHistogramI(latencies, lineAmps, dataAmps)
+refreshDisplay.m:function [dataAmps, tickAmps] = makeDotIAxes(extAtten);
+refreshDisplay.m:% function [dataAmps, tickAmps] = makeDotIAxes(extAtten);
+refreshDisplay.m:function pcolorTimeSlice(displayMat, dispFreqs, dispAmps);
+refreshDisplay.m:% function pcolorTimeSlice(displayMat, dispFreqs, dispAmps);
+refreshDisplay.m:function quiverTimeSlice(displayMat, dispFreqs, dispAmps)
+refreshDisplay.m:function addQuivers(displayMat2, dispFreqs2, dispAmps2, dispFreqs, dispAmps)
+refreshDisplay.m:function surfTimeSlice(displayMat, dispFreqs, dispAmps);
+refreshDisplay.m:% function surfTimeSlice(displayMat, dispFreqs, dispAmps);
+refreshDisplay.m:function hcolorbar = ntcColorBar(scaleMax)
+refreshDisplay.m:function hcolorbar = ntcQuiverBar(scaleMax)
+refreshDisplay.m:function hcolorbar = ntcDotBar();
+resizeNTCFig.m:function resizeNTCFig()
+resizeNTCFig.m:% function resizeNTCFig() 
+saveAttributes.m:function saveAttributes
+saveAttributes.m:% function saveAttributes
+saveFileDialog.m:function saveFileDialog
+saveFileDialog.m:% function saveFileDialog
+savePrefs.m:function savePrefs()
+savePrefs.m:% function savePrefs()
+selAndZap.m:function selAndZap
+selectLatency.m:function selectLatency
+setBackground.m:function setBackground(newColor)
+setDisplayType.m:function setDisplayType(hobj)
+setScale.m:function setScale
+setSmoothing.m:function setSmoothing(hobj)
+sharp.m:function sharp;
+sharp.m:% function sharp
+sharp.m:function measBW(cf, infoStart, lineAmp, hmessageText)
+sharp.m:  return
+showAttributes.m:function showAttributes(colHeaders)
+showFileNums.m:function showFileNums
+showHist.m:function showHist
+showLatencies2.m:function showLatencies
+showRate.m:function showRate
+showRate.m:function plotSize(rowTick, rowMat, symbol, mkScale)
+showRate.m:% function plotSize(rowTick, rowMat, symbol, mkScale)
+showRate.m:function dataMat = makeRawDataMat()
+smooth2.m:function modMat = smooth2(dataMat)
+smooth2.m:function [nbrCnt, nbhdMed] = numNeighbors2(a)
+smooth2.m:function [nbrCnt, nbhdMean] = numNeighbors(a)
+splToMaxPeakAccel.m:function maxPeakAccel = splToMaxPeakAccel(db_SPL, tOnset)
+splToMaxPeakAccel.m:% function maxPeakAccel = splToMaxPeakAccel(db_SPL, tOnset)
+spontButton.m:function spontButton
+suggest.m:function [edges, edgeAmps] = suggest()
+suggest.m:%function [edges edgeAmps] = suggest
+toggleBlind.m:function toggleBlind
+updateFromRange.m:function updateFromRange
+updateFromSliderText.m:function updateFromSliderText
+updateFromSliders.m:function updateFromSliders
+verbose.m:function vLevel = verbose(new_vLevel)
+verbose.m:% function vLevel = verbose(new_vLevel)
+verbose.m:%  verbose returns VERBOSE.
+zapStimPoint.m:function zapStimPoint
+zapStimRange.m:function zapStimRange

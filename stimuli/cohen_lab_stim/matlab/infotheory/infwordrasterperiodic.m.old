@@ -1,0 +1,183 @@
+%
+%function [InfoData]=infwordrasterperiodic(RASTER,Fsd,Fm)
+%
+%   FILE NAME       : INF WORD RASTER PERIOD
+%   DESCRIPTION     : Entropy & Noise Entropy of a periodic Spike Train 
+%                     obtained from the rastergram by computing the 
+%                     Probability Distribution, P(W|t), of finding a B 
+%                     letter Word, W, in the Spike Train at time T
+%
+%   RASTER          : Rastergram
+%	Fsd             : Sampling rate for generating P(W)
+%	B               : Length of Word, number of bits per cycle for
+%                     generating P(W) and P(W,t)
+%   Fm              : Sound modulation Frequency (Hz)
+%
+%Returned Variables
+%
+%   InfoData        : Data structure containing all mutual information
+%                     results
+%                     .HWordt   : Noise Entropy per Word
+%                     .HSect    : Noise Entropy per Second
+%                     .HSpiket  : Noise Entropy per Spike
+%                     .HWord    : Entropy per Word
+%                     .HSec     : Entropy per Second
+%                     .HSpike   : Entropy per Spike
+%                     .Rate     : Mean Spike Rate
+%                     .W        : Coded words for entropy calculation
+%                     .Wt       : Coded words for noise entropy calculation
+%                     .P        : Word distribution function
+%                     .Pt       : Word distribution function for noise entropy
+%                     .dt       : Actual Temporal Resolution Used
+%
+% (C) Monty A. Escabi, Aug. 2008
+%
+function [InfoData]=infwordrasterperiodic(RASTER,Fsd,Fm)
+
+%Temporal Resolution
+dt=1/Fsd;
+Fs=RASTER(1).Fs;
+L=max(round(Fs/Fsd),1);
+
+%Generating Cycle Raster Matrix at desired resolution and all phase values
+[Rc]=raster2cycleraster(RASTER,Fm,1,0,0);
+RASTERc=rasterexpand(Rc,Fsd,1/Fm,'y');
+N2=size(RASTERc,2);
+RASTERc=RASTERc/Fsd;                        %Normalizes amplitude
+%size(RASTERc)
+for k=2:N2
+    [Rc]=raster2cycleraster(RASTER,Fm,1,0,(k-1)/Fsd);
+    
+    Rc=rasterexpand(Rc,Fsd,1/Fm,'y');
+%    size(Rc)
+    RASTERc=[RASTERc ;Rc/Fsd];
+end
+
+%Generating Raster Matrix at desired resolution
+[RAS]=rasterexpand(RASTER,Fsd,RASTER(1).T);
+RAS=RAS/Fsd;
+B=size(RASTERc,2);
+
+%Binary Mask
+D=max([max(max(RASTERc)) max(max(RAS)) ])+1;
+Mask=[];
+for k=1:B
+        Mask=[Mask D^(k-1)];
+end
+
+%Computing Word Distribution for Noise Entropy: P(W,t)
+Wt=zeros(1,size(RASTERc,1));
+for k=1:size(RASTERc,2) %This loop is used to change the phase value so that all phases are considered
+
+    %Initialize
+    NN=0;
+    Pt=zeros(size(NN));
+
+    %Generating Matrix From Raster at desired resolution and desired cycle
+    %phase
+    [RASTERc]=raster2cycleraster(RASTER,Fm,1,0,(k-1)/Fsd);
+    RASTERc=rasterexpand(RASTERc,Fsd,1/Fm,'y');
+    RASTERc=RASTERc/Fsd;                        %Normalizes amplitude
+    
+    for l=1:size(RASTERc,1)
+        Word=RASTERc(l,:);
+        n=sum(Mask.*Word);
+        Wt(k,l)=n;
+        index=find(NN==n);
+        if isempty(index)
+            Pt=[Pt 1];
+            NN=[NN n];
+        else
+            Pt(index)=Pt(index)+1;
+        end
+    end
+
+    %Normalizing Conditional Word Histogram at the k-th phase
+    PPt=Pt/sum(Pt);
+
+    %Finding Noise Entropy at a given phase
+    index=find(PPt~=0);
+    HWordt(k)=sum(PPt(index).*log2(1./PPt(index)));
+
+end
+HWordt=mean(HWordt);
+
+%Finding Entropy
+NN=0;
+W=-9999*ones(1,B*size(RAS,2)*size(RAS,1));
+P=0;
+N1=size(RAS,1);
+N2=size(RAS,2);
+% for i=1:10 %This loop is used to change the phase value so that all phases are considered
+%     
+%     %Generating Matrix From Raster at desired resolution and desired cycle
+%     %phase
+%     RAS=RASTER;
+%     for j=1:N1
+%        RAS(j).spet=[RASTER(j).spet]+(i-1)/Fsd/10*Fs;  %Considering 10 evenly distributed phase values
+%     end
+%     RAS=rasterexpand(RAS,Fsd,RAS(1).T);
+%     RAS=RAS/Fsd;                        %Normalizes amplitude
+%imagesc(RAS)
+%pause(0)
+
+    for k=1:N2-B
+
+        %Finding Word Distribution
+        for l=1:N1
+            Word=RAS(l,k+(0:B-1));
+            n=sum(Mask.*Word);
+            W(l+(k-1)*N1)=n;
+            index=find(NN==n);
+            if isempty(index)
+                P=[P 1];
+                NN=[NN n];
+            else
+                P(index)=P(index)+1;
+            end 
+
+        end
+
+        %Normalizing Word Histogram
+        index=find(P>0);
+        PP=P(index)/sum(P(index));
+        %HWord(k)=sum(PP.*log2(1./PP));
+        HWord(k)=sum(PP.*log2(1./PP));
+              
+%         %Displaying Output
+%         clc
+%         disp(['Percent Done: ' int2str(k/(N2-B)*100) ' %'])
+%         pause(0)
+% 
+    end
+      
+     index=find(W~=-9999);
+     W=W(index);
+% 
+%         %Displaying Output
+%         clc
+%         disp(['Percent Done: ' int2str(i/10*100) ' %'])
+
+
+%semilogy(sort(PP))
+%plot(sum(RAS))
+%RASTER(1).Fs
+%pause(0)
+%end
+
+%Mean Spike Rate
+Rate=mean(mean(RAS)*Fsd);
+
+%Entropy per time and per spike
+InfoData.HWordt=HWordt;
+InfoData.HSect=HWordt/dt/B;
+InfoData.HSpiket=InfoData.HSect/Rate;
+InfoData.HWord=HWord;
+InfoData.HSec=HWord/dt/B;
+InfoData.HSpike=InfoData.HSec/Rate;
+InfoData.Rate=Rate;
+InfoData.W=W;
+InfoData.Wt=Wt;
+InfoData.P=P;
+InfoData.Pt=Pt;
+InfoData.dt=dt;

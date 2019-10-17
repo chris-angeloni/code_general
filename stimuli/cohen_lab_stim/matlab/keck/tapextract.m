@@ -1,0 +1,207 @@
+%
+%function []=tapextract(dev,machine,filenum,chan,outfile,SpikeChan,EegChan,M,B,Throttle)
+%
+%       FILE NAME       : TAPE XTRACT
+%       DESCRIPTION     : Downloads the contents of a DAT tape
+%			  Breaks up files into channel and Block
+%			  Filters EEG and Spike Waveforms as Required
+%
+%      dev		: Tape Device 
+%			  Alpha: '/dev/nrmt0h' or '/dev/nrmt1h' etc.
+%			  Linux: '/dev/nst0' or '/dev/nst1' etc.
+%	machine		: Machine name: 'keck' or 'marsalis'
+%	filenum		: Array of filenumbers to download
+%			  eg,. [0 5 8 9 10 18], etc.
+%	chan		: Array of desired chanel sequences for all files
+%			  eg., [1 2], [1], [2 5], etc.
+%
+%	outfile		: Output filename name Header
+%	SpikeChan	: Array of desired chanel sequences to filter spikes
+%                         eg., [1 2], [1], [2 5], etc.
+%	EegChan		: Array of desired chanel sequences to filter EEG
+%                         eg., [1 2], [1], [2 5], etc.
+%
+%OPTIONAL
+%	M		: Buffer Length : Optional (128K Default)
+%	B		: File block size for 'xtractch'
+%			  Default = 10 Megs
+%	Throttle	: Throttles the output 'y' or 'n', Default='n'
+%
+%EXAMPLE
+%       tapextract('/dev/nrmt0h','marsalis',[2 4 6],[1 2 3],'CTX98119t3',[1 2 3],[])
+%
+function []=tapextract(dev,machine,filenum,chan,outfile,SpikeChan,EegChan,M,B,Throttle)
+
+%Preliminaries
+more off
+
+%Opperating System Type
+OSTYPE=getenv('OSTYPE');
+
+%Checkin input arguments
+if nargin<8
+	M=1024*128;
+	B=10;
+	Throttle='n';
+elseif nargin <9
+	B=10;
+	Throttle='n';
+elseif nargin <10 
+	Throttle='n';
+end
+
+%Finding the local path to save file
+path=pwd;
+%if isempty(findstr(path,'net')) & ~strcmp(OSTYPE,'Linux')
+%	path=['/net' path];
+%end
+
+%Removing tmp_mnt
+if ~isempty(findstr(path,'tmp_mnt'))
+	index=findstr(path,'tmp_mnt');
+	path=path(index+7:length(path));
+end
+
+%Advancing the Tape
+[i,hostname]=unix('hostname');
+if ~isempty( findstr(hostname,machine) )
+	Prefix='! ';
+	Q=' ';
+else
+	Prefix=['!rsh ' machine ' '];
+	Q='"';
+end
+clc
+f=[Prefix Q 'mt -f ' dev ' rewind' Q];
+disp(f)
+eval(f);
+f=[Prefix Q ' cd ' path '; dd if=' dev ' of=dump ibs=65024 conv=sync' Q];
+disp(f)
+eval(f);
+!rm -f dump;
+if filenum(1)>0
+	f=[Prefix Q ' cd ' path '; mt -f ' dev ' fsf ' num2str(filenum(1))  Q];
+	disp(f)
+	eval(f)
+end
+
+%Downloading data from tape and Extracting desired channels
+q=setstr(39);
+for k=1:length(filenum)
+
+	%Downloading File from tape
+	if filenum(k)<10
+		if isempty(find(outfile=='_'))	%Monty's option
+			filename=[outfile '_f0' num2str(filenum(k)) '.bin'];
+		else				%Lee's option
+			filename=[outfile 'f0' num2str(filenum(k)) '.bin'];
+		end
+	else
+		if isempty(find(outfile=='_'))	%Monty's option
+			filename=[outfile '_f' num2str(filenum(k)) '.bin'];
+		else				%Lee's option
+			filename=[outfile 'f' num2str(filenum(k)) '.bin'];
+		end
+	
+	end
+
+	%Throttleing dd if necessary
+	if Throttle=='y'
+		f=[Prefix Q 'cd ' path '; throttle dd if=' dev  ' of=' filename ' ibs=65024 conv=sync' Q];
+	else
+		f=[Prefix Q 'cd ' path '; dd if=' dev  ' of=' filename ' ibs=65024 conv=sync' Q];
+	end
+	disp(f);
+	eval(f);
+
+	%Extracting Header information
+	[Fs,interleave] = dat_header(filename);
+
+	%Extracting channel sequences
+	ii=find(filename=='.');
+	for l=1:length(chan)
+		f=['xtractch(' q filename q ','  num2str(chan(l)) ',' num2str(M) ',B);'];
+		eval(f);
+
+		%Filtering Spikes and / or EEG
+		%Filtering EEG Channels
+		if ~isempty( find( (EegChan==chan(l)) == 1) )
+
+			%Initializing Filename and Counter
+			filecount=1;
+			xtractfile=[filename(1:ii-1) '_ch' num2str(chan(l)) '_b' num2str(filecount) '.raw'];
+
+			%Filtering Blocked Data
+			while exist(xtractfile) 
+				%Lowpass Filtering Data - 0-150 Hz, TW=100 Hz 
+				if exist('/usr/local/bin/filtfilesw')
+					f=['!filtfilesw ' xtractfile ' ' xtractfile '.tmp ' num2str(Fs) ' 0 150 100 40 262144 .8 '];
+					eval(f);
+				else
+					filtfile(xtractfile,[xtractfile '.tmp'],0,150,100,40,Fs,1024*32,.8);
+				end
+
+				%Decimating Filtered Data
+				L=ceil(Fs/400);
+				decimatefile([xtractfile '.tmp'],[xtractfile '.tmp2'],L);
+		
+				%Removing TMP File
+				f=['!rm -f ' xtractfile '.tmp'];
+				eval(f)	
+	
+				%Renaming TMP2 File as EEGFILE
+				eegfile=[filename(1:ii-1) '_ch' num2str(chan(l)) '_b' num2str(filecount) '_eeg.raw'];
+				f=['!mv ' xtractfile '.tmp2 ' eegfile];
+				eval(f)	
+
+				%Updating Filename and Counter
+				filecount=filecount+1;
+				xtractfile=[filename(1:ii-1) '_ch' num2str(chan(l)) '_b' num2str(filecount) '.raw'];
+			end
+
+		end
+
+		%Filtering Spike Channels
+		if ~isempty( find( (SpikeChan==chan(l)) == 1) )
+
+			%Initializing Filename and Counter
+			filecount=1;
+			xtractfile=[filename(1:ii-1) '_ch' num2str(chan(l)) '_b' num2str(filecount) '.raw'];
+
+			%Filtering Blocked Data
+			while exist(xtractfile)
+
+				%Filtering Data - 500Hz-10KHz , TW=300 Hz
+				if exist('/usr/local/bin/filtfilesw')
+					f=['!filtfilesw ' xtractfile ' ' xtractfile '.tmp ' num2str(Fs) ' 500 10000 300 60 262144 .8 '];
+					eval(f);
+				else
+					filtfile(xtractfile,[xtractfile '.tmp'],500,10000,300,60,Fs,1024*32,.8);
+				end
+
+				f=['!mv -f ' xtractfile '.tmp ' xtractfile];
+				eval(f);
+
+				%Updating Filename and Counter
+				filecount=filecount+1;
+				xtractfile=[filename(1:ii-1) '_ch' num2str(chan(l)) '_b' num2str(filecount) '.raw'];
+
+			end
+		end
+	end
+
+	%Removing File From Tape
+	f=['!rm -f ' filename];
+	disp(f);
+	eval(f); 
+
+	%Fast Forwarding tape if necesary
+	if ~(k==length(filenum))
+		if filenum(k+1)-filenum(k)>1
+			f=[Prefix Q 'cd ' path '; mt -f ' dev ' fsf ' num2str(filenum(k+1)-filenum(k)-1) Q];
+			disp(f);
+			eval(f);
+		end
+	end
+end
+

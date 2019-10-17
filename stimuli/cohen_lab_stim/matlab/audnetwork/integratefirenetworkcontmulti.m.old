@@ -1,0 +1,80 @@
+%
+%function [Y]=integratefirenetworkcontmulti(X,L,Tau,Tref,Nsig,SNR,SigE,SigI,EIR,Fs,flag,detrendim,detrendin)
+%
+%   FILE NAME       : INTEGRATE FIRE NETWORK CONT MULTI
+%   DESCRIPTION     : Single-layer Network of Integrate and fire model
+%                     neuros with continous multi-input signal
+%
+%   X               : Continuous multi-input signal
+%   L               : Number of output nuerons
+%   Tau             : Integration time constant (msec)
+%   Tref            : Refractory Period (msec)
+%   Nsig            : Number of standard deviations of the
+%                     intracellular voltage to set the spike threshold
+%   SNR             : Signal to Noise Ratio (dB)
+%   SigE            : Excitatory spatial gaussian integration width 
+%                     standard deviation (spatial axis is normalized from 
+%                     0 to 1)
+%   SigI            : Inhibitory spatial gaussian integration width 
+%                     standard deviation (spatial axis is normalized from 
+%                     0 to 1)
+%   EIR             : Excitatory to inhibitory ratio - normalized so that: StdE=EIR*StdI
+%   Fs              : Sampling Rate (Hz)
+%   flag            : flag = 0: Voltage variance is constant (Default)
+%                     sig_m = (Vtresh-Vrest)/Nsig
+%                     SNR is determined by Current
+%                     1: Total Voltage variance is constant
+%                        sig_tot = (Vtresh-Vrest)/Nsig
+%                        SNR is determined by Current
+%                     2: Voltage Variance is Constant
+%                        SNR is determined by the Voltage
+%                     3: Total Voltage Variance is constant
+%                        sig_tot = (Vtresh-Vrest)/Nsig
+%                        SNR is determined by the Voltage
+%   detrendim       : Removes time constant from Im if desired ('y' or 'n')
+%                     (Default=='n'). This detrending is usefull if you 
+%                     know the desired intracellular voltage Vm, but not
+%                     the intracellular current.
+%   detrendin       : Removes time constant from Im if desired ('y' or 'n')
+%                     (Default=='n'). This detrending is usefull if you
+%                     know the desired intracellular noise voltage but 
+%                     not the intracellular noise current.
+%
+%OUTPUT VARIABLES
+%
+%   Y               : Output Spike Train Matrix
+%
+% (C) Monty A. Escabi, 2013
+%
+function [Y]=integratefirenetworkcontmulti(X,L,Tau,Tref,Nsig,SNR,SigE,SigI,EIR,Fs,flag,detrendim,detrendin)
+
+%Generating Currents and output spikes
+M=size(X,1);
+for k=1:L
+    
+    %Spatial Axis - Normalized between [0,1]
+    x=(0:M-1)/(M-1);
+    mu=(k-1)/(L-1);
+    
+    %Excitatory Connection Weights
+    WE=exp(-(x-mu).^2/SigE.^2/2);
+    WE=WE/sqrt(sum(WE.^2));
+    
+    %Inhibotory Connection Weights
+    WI=exp(-(x-mu).^2/SigI.^2/2);      %Normalize for equal power
+    WI=WI/sqrt(sum(WI.^2));            %Normalize for equal power
+    
+    %Generating composite Excitatory and Inhibitory Currents
+    ImE=WE*X;
+    ImI=WI*X;
+
+    %Total Composite Excitatory/Inhibitory Current
+    Itot=-ImI+EIR*ImE;
+  
+    %Generating Output Spike Trains
+    Vtresh=-10;
+    Vrest=-65;
+    In=randn(size(Itot));
+    [Y(k,:)]=integratefire(Itot,Tau,Tref,Vtresh,Vrest,Nsig,SNR,Fs,flag,In,'y','n');
+
+end

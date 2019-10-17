@@ -1,0 +1,62 @@
+%function strfmodelsave(infilename,outfilename,option1,option2,display);
+%
+%Function
+%                to fit STRF1 and STRF2 and save the results into outfilename
+%Definition
+%             1   contralateral
+%             2   ipsilateral
+%Input
+%        option1   'STRFs'  fit significant STRF
+%                  'STRF'   fit STRF
+%        option2   'IC'     fit STRF in IC
+%                  'CTX'    fit STRF in the auditory cortex
+%
+%  ANQI QIU 
+%  11/12/2001
+
+function strfmodelsave(infilename,outfilename,option1,option2,display);
+
+
+
+f=['load ' infilename];
+eval(f);
+%Finding STRF for Dual Sound Presentation
+if ~exist('STRF1')
+	STRF1=(STRF1A+STRF1B)/2;
+	STRF2=(STRF2A+STRF2B)/2;
+end
+%to fit the STRF1
+[STRFs,Thresh]=wstrfstat(STRF1,0.001,No1,Wo1,PP,MdB,ModType,Sound,SModType);
+
+if strcmp(option1,'STRFs')
+   STRF=STRF1s;
+   STRFs=STRF1s;
+else
+   STRF=STRF1;
+   STRFs=STRF1s;
+end
+if strcmp(option2,'IC')
+   [STRF1m,STRF1am,STRF1bm,STRF1a,STRF1b,x10,w1,sf10,spectrop1,t10,c1,tf10,q1,belta1,Enoise1,E1,E1s,E1a,E1b,E1m,E1am,E1bm,Errs1,SNR1,SI1as,SI1at,SI1bs,SI1bt,SI1m,SI1ms,Elps1a,Elps1b,Elpt1a,Elpt1b,flag1,flag_STRF1bm,alpha_svd1,alpha_d1]=strfmodel_ic(STRF,STRFs,taxis,faxis,PP,Thresh,display);
+else
+  	[STRF1m,STRF1am,STRF1bm,STRF1a,STRF1b,x10,w1,sf10,spectrop1,t10,c1,tf10,q1,belta1,Enoise1,E1,E1s,E1a,E1b,E1m,E1am,E1bm,Errs1,SNR1,SI1as,SI1at,SI1bs,SI1bt,SI1m,SI1ms,Elps1a,Elps1b,Elpt1a,Elpt1b,flag1,flag_STRF1bm,alpha_svd1,alpha_d1]=strfmodel_ctx(STRF,STRFs,taxis,faxis,PP,Thresh,display);
+end;
+
+%to fit the STRF2
+[STRFs,Thresh]=wstrfstat(STRF2,0.001,No2,Wo2,PP,MdB,ModType,Sound,SModType);
+if strcmp(option1,'STRFs')
+   STRF=STRF2s;
+   STRFs=STRF2s;
+else
+   STRF=STRF2;
+   STRFs=STRF2s;
+end
+if strcmp(option2,'IC')
+   [STRF2m,STRF2am,STRF2bm,STRF2a,STRF2b,x20,w2,sf20,spectrop2,t20,c2,tf20,q2,belta2,Enoise2,E2,E2s,E2a,E2b,E2m,E2am,E2bm,Errs2,SNR2,SI2as,SI2at,SI2bs,SI2bt,SI2m,SI2ms,Elps2a,Elps2b,Elpt2a,Elpt2b,flag2,flag_STRF2bm,alpha_svd2,alpha_d2]=strfmodel_ic(STRF,STRFs,taxis,faxis,PP,Thresh,display);
+else
+   [STRF2m,STRF2am,STRF2bm,STRF2a,STRF2b,x20,w2,sf20,spectrop2,t20,c2,tf20,q2,belta2,Enoise2,E2,E2s,E2a,E2b,E2m,E2am,E2bm,Errs2,SNR2,SI2as,SI2at,SI2bs,SI2bt,SI2m,SI2ms,Elps2a,Elps2b,Elpt2a,Elpt2b,flag2,flag_STRF2bm,alpha_svd2,alpha_d2]=strfmodel_ctx(STRF,STRFs,taxis,faxis,PP,Thresh,display);
+end;
+
+
+%to save the result
+f=['save ' outfilename ' STRF1m STRF1am STRF1bm STRF1a STRF1b x10 w1 sf10 spectrop1 t10 c1 tf10 q1 belta1 Enoise1 E1 E1s E1a E1b E1m E1am E1bm Errs1 SNR1 SI1as SI1at SI1bs SI1bt SI1m SI1ms Elps1a Elps1b Elpt1a Elpt1b flag1 flag_STRF1bm alpha_svd1 alpha_d1 STRF2m STRF2am STRF2bm STRF2a STRF2b x20 w2 sf20 spectrop2 t20 c2 tf20 q2 belta2 Enoise2 E2 E2s E2a E2b E2m E2am E2bm Errs2 SNR2 SI2as SI2at SI2bs SI2bt SI2m SI2ms Elps2a Elps2b Elpt2a Elpt2b flag2 flag_STRF2bm alpha_svd2 alpha_d2'];
+eval(f);

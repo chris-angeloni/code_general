@@ -1,0 +1,103 @@
+%
+%function [AmpData]=audiogramampdist(data,Fs,dX,f1,fN,Fm,OF,dT,ND,Norm,dis,ATT)
+%	
+%	FILE NAME 	: AUDIOGRAM AMP DIST
+%	DESCRIPTION : Computes time-dependent envelope amplitude / contrast
+%                 distribution from the audiogram of a sound
+%
+%   data    : Input data vector (sound vector) or output data structure
+%             from audiogram.m (AudData)
+%   Fs      : Sampling Rate
+%   dX      : Spectral Filter Bandwidth Resolution in Octaves
+%             Usually a fraction of an octave ~ 1/8 would allow
+%             for a spectral envelope resolution of up to 4
+%             cycles per octave
+%             Note that X=log2(f/f1) as defined for the ripple
+%             representation
+%   f1      : Lower frequency to compute spectral decomposition
+%   fN      : Upper freqeuncy to compute spectral decomposition
+%   Fm      : Maximum Modulation frequency allowed for temporal
+%             envelope at each band. If Fm==inf full range of Fm is used.
+%   OF      : Oversampling Factor for temporal envelope
+%             Since the maximum frequency of the envelope is
+%             Fm, the Nyquist Frequency is 2*Fm
+%             The Frequency used to sample the envelope is
+%             2*Fm*OF
+%   dT      : Temporal Window Used to Compute Amplitude Distribution (sec)
+%   Overlap : Percent overlap between consecutive windows used to genreate
+%             contrast distribution. Overlap = 0 to 1. 0 indicates no
+%             overlap. 0.9 would indicate 90 % overlap.
+%   ND      : Polynomial Order: Detrends the local spectrum
+%             by fiting a polynomial of order ND. The fitted
+%             trend is then removed. If ND==0 then no detrending
+%             is performed. (Default==0, No detrending)
+%   Norm    : Amplitude normalization (Optional)
+%             'En'  = Equal Energy (Default)
+%             'Amp' = Equal Amplitude
+%   dis     : display (optional): 'log' or 'lin' or 'n'
+%             Default == 'n'
+%   ATT     : Attenution / Sidelobe error in dB (Optional)
+%             Default == 60 dB
+%
+%RETURNED VARIABLES
+%
+%   Time    : Time Axis
+%   Amp     : Amplitude Axis ( decibels )
+%   PDist   : Time Dependent Probability Distribution of Amp
+%
+% (C) Monty A. Escabi, Sept 2012
+%
+function [AmpData]=audiogramampdist(data,Fs,dX,f1,fN,Fm,OF,dT,Overlap,ND,Norm,dis,ATT)
+
+%Input Parameters
+if nargin<10
+	ND=0;
+end
+if nargin<11
+    Norm='En';
+end
+if nargin<12
+	dis='n';
+end
+if nargin<13
+	ATT=60;
+end
+
+%Generating Audiogram if necessary
+if ~isstruct(data)
+    data=data/std(data);    %Normalizing for unit variance
+    [AudData]=audiogram(data,Fs,dX,f1,fN,Fm,OF,Norm,dis,ATT);
+else
+    AudData=data;
+end
+
+%Computing Amplitude Distribution
+Fst=1/(AudData.taxis(2)-AudData.taxis(1));
+dN=round(dT*Fst);               %Window size to compute distribution
+dNt=round(dT*Fst*(1-Overlap));  %Temporal sampling period for computing distribution (in sample numbers)
+SdB=20*log10(AudData.S);
+i=find(~isinf(SdB));
+SdB=SdB-mean(SdB(i));
+count=1;
+PDist=[];
+while count*dNt+dN<size(AudData.S,2)
+    offset=(count-1)*dNt;
+    SS=reshape(SdB(:,offset+1:offset+dN),1,numel(SdB(:,offset+1:offset+dN)));
+    [P,Amp]=hist(SS,[-100:1:100]);
+    PDist=[PDist P'/length(SS)];
+	Amp=Amp';
+    count=count+1;
+end
+
+%Finding Mean, Std, and Kurtosis Trajectories
+Time=(0:size(PDist,2)-1)*dNt/Fst;
+[Time,StddB,MeandB,KurtdB]=ampstdmean(Time,Amp,PDist);
+
+%Storing Data to Structure
+AmpData.PDist=PDist;
+AmpData.StddB=StddB;
+AmpData.MeandB=MeandB;
+AmpData.Amp=Amp;
+AmpData.Time=Time;
+AmpData.dT=dT;
+AmpData.dN=dN;

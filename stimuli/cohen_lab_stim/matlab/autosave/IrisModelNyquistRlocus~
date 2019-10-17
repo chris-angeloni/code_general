@@ -1,0 +1,48 @@
+%PHYSIOLOGICAL CONSTANTS
+K=1.6
+K=100
+D=0.18
+%D=4    %UNSATABLE
+tau=.2
+
+%DEFINING THE TRANSFER FUNCITON
+Num=K
+Den=[tau^3 3*tau^2 3*tau 1]
+Hs=tf(Num,Den)
+
+%GENERATING NYQUIST PLOT
+w=0:0.001:100;
+[R,I,w]=nyquist(Hs,w);, R=squeeze(R);, I=squeeze(I);
+
+%ADDING PHASE SHIFT
+Hdel = (R+j*I) .* exp(-j*w*D);
+Rdel= real(Hdel);
+Idel= imag(Hdel);
+
+plot(R,I)
+hold on
+plot(Rdel,Idel,'r')
+xlabel('Real(H(w))')
+xlabel('Imag(H(w))')
+
+
+%%%%%%%DIRECRT APPROACH%%%%%%%
+
+Hs=K*exp(-s*D)/(tau^3*s^3+3*tau^2*s^2+3*tau*s +1);
+
+%%%%%%%%%%%%%%
+
+rlocus(Hs)
+
+
+%%%%%%%%%%%%%%
+
+%Gain and Phase Margin Plot
+
+plot(20*log10(abs(Hdel)),(angle(Hdel))/2*pi)
+hold on
+xlabel('Magnitude (dB)')
+ylabel('Phase / 2 / pi')
+plot([-10 10],[0 0],'k-.')
+plot([0 0],[-5 5],'k-.')
+axis([-5 5 -5 5 ])

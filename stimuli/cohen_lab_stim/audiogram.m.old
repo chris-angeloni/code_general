@@ -1,0 +1,81 @@
+%
+%function [taxis,faxis,stft]=audiogram(data,Fs,dX,f1,fN,Fm,OF,dis,ATT)
+%	
+%	FILE NAME 	: AUDIOGRAM
+%	DESCRIPTION 	: Spectro-temporal signal representation obtained 
+%			  by applying a octave spaced filterbank and
+%			  extracting envelope modulation signal
+%
+%	data		: Input data
+%	Fs		: Sampling Rate
+%	dX		: Spectral Filter Bandwidth Resolution in Octaves
+%			  Usually a fraction of an octave ~ 1/8 would allow 
+%			  for a spectral envelope resolution of up to 4 
+%			  cycles per octave
+%			  Note that X=log2(f/f1) as defined for the ripple 
+%			  representation 
+%	f1		: Lower frequency to compute spectral decomposition
+%	f2		: Upper freqeuncy to compute spectral decomposition
+%	Fm		: Maximum Modulation frequency allowed for temporal
+%			  envelope at each band
+%	OF		: Oversampling Factor for temporal envelope
+%			  Since the maximum frequency of the envelope is 
+%			  Fm, the Nyquist Frequency is 2*Fm
+%			  The Frequency used to sample the envelope is 
+%			  2*Fm*OF
+%
+%Optional Parameters
+%	dis		: display (optional): 'log' or 'lin' or 'n'
+%			  Default == 'n'
+%	ATT		: Attenution / Sidelobe error in dB (Optional)
+%			  Default == 60 dB
+%
+function [taxis,faxis,stft]=audiogram(data,Fs,dX,f1,fN,Fm,OF,dis,ATT)
+
+%Input Parameters
+if nargin<8
+	dis='n';
+end
+if nargin<9
+	ATT=60;
+end
+
+%Finding frequency axis for chromatically spaced filter bank
+%Note that chromatic spacing requires : f(k) = f(k+1) * 2^dX
+X1=0
+XN=log2(fN/f1);
+L=floor(XN/dX);
+X=(.5:L-.5)/L*XN;
+Xc=(0:L)/L*XN;
+faxis=f1*2.^X;
+fc=f1*2.^Xc;
+
+%Temporal Down Sampling Factor
+DF=floor(Fs/2/Fm/OF);
+
+%Desining Low Pass Filter for Extracting Envelope
+He=lowpass(Fm,.2*Fm,Fs,ATT,'n');
+Ne=(size(He)-1)/2
+
+%Filtering data, Extracting Envelope, and Down-Sampling
+for k=1:length(fc)-1
+
+	%Output Display
+	clc,disp(['Filtering band ' int2str(k) ' of ' int2str(length(fc)-1)]) 
+
+	%Designing Filter
+	TW=(fc(k+1)-fc(k))/4;
+	H=bandpass(fc(k),fc(k+1),TW,Fs,ATT,'n');
+	N=(length(H)-1)/2;
+
+	%Filtering at kth Scale
+	Y=convfft(data,H,N);
+
+	%Finding Envelope Using the Hilbert Transform
+	Y=abs(hilbert(Y));
+
+	%Filtering The Envelope and Downsampling
+	Y=convfft(Y,He,Ne);
+	stft(k,:)=Y(1:DF:length(Y));
+
+end

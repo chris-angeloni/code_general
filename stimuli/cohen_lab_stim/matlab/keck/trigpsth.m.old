@@ -1,0 +1,23 @@
+%
+%function [TrigTimes]=trigpsth(TrigTimes,Fs,Tresh)
+%
+%       FILE NAME       : TRIG PSTH
+%       DESCRIPTION     : Fixes the trigger times for a PSTH sequence
+%
+%	TrigTimes	: Trigger Time Vector (in sample number)
+%	Fs		: Sampling Rate for Trigger
+%	Tresh		: Treshhold -> [0 1] -> percentage of maximum
+%			  of diff(TrigTimes)
+%
+function [TrigTimes]=trigpsth(TrigTimes,Fs,Tresh)
+
+%Finding difference 
+dTrig=diff(TrigTimes);
+MaxdTrig=max(dTrig);
+
+%Thresholding
+index=find(dTrig>MaxdTrig*Tresh);
+
+%Assigning Trigger Times
+TrigTimes=round(TrigTimes(index+1)-.045*Fs);
+%TrigTimes=round(TrigTimes(index+1));

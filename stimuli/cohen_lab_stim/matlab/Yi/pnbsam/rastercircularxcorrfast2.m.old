@@ -1,0 +1,104 @@
+%
+%function [Rshuf,Rse,RshufJ]=rastercircularxcorrfast(RASTER,Fsd,Delay,NJ)
+%
+%   FILE NAME       : RASTER CIRCULAR CORR FAST
+%   DESCRIPTION     : Shuffled rastergram circular correlation function.
+%                     The standard error is obtaine with a Jackknife on the
+%                     original data samples.
+%
+%	RASTER          : Rastergram (compressed spet format)
+%   Fsd             : sampling rate of raster to compute raster-corr.
+%   Delay           : Rearranges the shuffled correlation so that the
+%                     zeroth bin is centered about the center of the
+%                     correaltion function (at the floor(N/2)+1 sample).
+%                     Otherwize, the zeroth bin of the correaltion function
+%                     is located at the first sample of Rshuf. (OPTIONAL,
+%                     Default == 'n')
+%	NJ              : Number of Jackknives for Cross Correlation Estimate
+%                     (Default = 0). This is used to compute the standard
+%                     errror on all statistics.
+%   m               : throw out m each jackknife
+
+%RETURNED VALUES
+%	Rshuf           : Trial shuffled correlation fuction
+%	Rse             : Shuffled correlation standard error
+%   RshufJ          : Jackknife matrix containing shuffled correlation
+%                     functions for NJ Jackknives.
+
+%
+% (C) Monty A. Escabi, July 2007
+%
+function [Rshuf,Rse,RshufJ]=rastercircularxcorrfast2(RASTER,Fsd,Delay,NJ,m)
+
+%Input Args
+if nargin<3
+   delay='n'; 
+end
+if nargin<4
+    NJ=0;
+end
+
+%Expand rastergram into matrix format
+T=RASTER(1).T;
+[RAS,Fs]=rasterexpand(RASTER,Fsd,T);
+
+%Rastergram Length
+L=size(RAS,2);  % # of points of per trial
+M=size(RAS,1);  % # of trials
+
+%Computing Shuffled Circular Correlation using the following algorithm:
+%
+%   Rshuffle = Rpsth - Rdiag
+%
+%This approach is a very efficient way of computing the shuffled
+%correlation function. It requires N+1 correlations compared to N*(N+1)/2.
+%Note that it differs from the standard shuffled correlation since we are
+%taking all of the off-diagonal terms (N*(N-1)), and not simply the lower 
+%off-diagonal terms (N*(N-1)/2). The shuffled is an even-function (i.e., 
+%symetric for + and - delays) when computed this way.
+%
+PSTH=sum(RAS,1);
+F=fft(PSTH);
+R=real(ifft(F.*conj(F)))/Fsd/T;
+F=fft(RAS,[],2);
+Rdiag=real(ifft(F.*conj(F),[],2)/Fsd/T);
+Rshuf=(R-sum(Rdiag)) / (M*(M-1));
+
+%Shifting zeroth bin
+if Delay=='y'
+   Rshuf=fftshift(Rshuf); 
+end
+
+%Performing a Jackknife if desired
+if NJ>=1
+    
+    for k=1:NJ        
+        index=[1:((NJ-1)*m) (NJ*m+1):M];
+        
+        %Computing Correlation Functions
+        PSTH=sum(RAS(index,:),1);
+        F=fft(PSTH);
+        R=real(ifft(F.*conj(F)))/Fsd/T;
+        F=fft(RAS(index,:),[],2);
+        Rdiag=real(ifft(F.*conj(F),[],2)/Fsd/T);
+        RshufJ(k,:)=(R-sum(Rdiag)) / ((M-1)*(M-2));
+        
+        %Shifting zeroth bin
+        if Delay=='y'
+           RshufJ(k,:)=fftshift(RshufJ(k,:)); 
+        end
+    
+        %Residuals
+        Rres(k,:)=Rshuf-RshufJ(k,:);
+    end  % end of k
+
+    %Standard Error on Shuffled Corr
+    % Rse=sqrt(sum(M/(M-1)*Rres.^2));
+    % Rse=sqrt(sum(M/(NJ-1)*Rres.^2));
+    Ncorr=M*(M-1)/2; mcorr=M*(M-1)/2-(M-m)*(M-m-1)/2;
+    Rse=sqrt(sum((Ncorr-mcorr)/Ncorr*Rres.^2));
+    
+else
+   RshufJ=-9999;
+   Rres=-9999;
+end

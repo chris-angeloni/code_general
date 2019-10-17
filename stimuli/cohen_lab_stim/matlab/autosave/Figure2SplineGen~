@@ -1,0 +1,160 @@
+figure
+subplot(221)
+Fs=2000;
+h1=bsplinelowpass(4,8,Fs);
+h1=h1/max(h1);
+N=(length(h1)-1)/2;
+time1=(0:2*N)/Fs*1000;
+plot(time1,h1/max(h1),'r')
+hold on
+
+h2=bsplinelowpass(8,8,Fs);
+N=(length(h2)-1)/2;
+h2=h2/max(h2);
+time2=(0:2*N)/Fs*1000;
+plot(time2,h2/max(h2),'g')
+
+h3=bsplinelowpass(16,8,Fs);
+N=(length(h3)-1)/2;
+h3=h3/max(h3);
+time3=(0:2*N)/Fs*1000;
+plot(time3,h3/max(h3),'b')
+set(gca,'box','off')
+
+figure
+subplot(333)
+plot(time1,h1/max(h1),'r')
+set(gca,'box','off')
+set(gca,'YTick',[0 1])
+axis([0 400 0 1])
+
+subplot(336)
+plot(time2,h2/max(h2),'g')
+set(gca,'box','off')
+set(gca,'YTick',[0 1])
+axis([0 400 0 1])
+
+subplot(339)
+plot(time3,h3/max(h3),'b')
+set(gca,'box','off')
+set(gca,'YTick',[0 1])
+axis([0 400 0 1])
+
+subplot(3,1.5,1)
+T=1.5
+[X,Env1,Fm]=pnbsplinemodnoise(inf,4,1,4,8,T,Fs);
+t1=(0:length(Env1)-1)/Fs-1/Fm/2;
+plot(t1,Env1,'b')
+axis([0 1 0 1])
+set(gca,'YTick',[0 1])
+set(gca,'box','off')
+
+
+subplot(3,1.5,2.5)
+[X,Env2,Fm]=pnbsplinemodnoise(inf,4,1,8,8,T,Fs);
+t2=(0:length(Env2)-1)/Fs-1/Fm/2;
+plot(t2,Env2,'g')
+axis([0 1 0 1])
+set(gca,'YTick',[0 1])
+set(gca,'box','off')
+
+subplot(3,1.5,4)
+[X,Env3,Fm]=pnbsplinemodnoise(inf,4,1,16,8,T,Fs);
+t3=(0:length(Env3)-1)/Fs-1/Fm/2;
+plot(t3,Env3,'r')
+axis([0 1 0 1])
+set(gca,'YTick',[0 1])
+set(gca,'box','off')
+
+
+figure
+
+%%%%%%%%%%%%%
+subplot(3,1.5,1)
+T=1.5
+[X,Env1pt,Fm]=pnbsplinemodnoise(inf,4,1,Fs/2,8,T,Fs);
+t1=(0:length(Env1pt)-1)/Fs-1/Fm/2;
+plot(t1,Env1pt,'k')
+axis([0 1 0 1])
+set(gca,'YTick',[0 1])
+set(gca,'box','off')
+
+
+subplot(3,1.5,2.5)
+[X,Env2pt,Fm]=pnbsplinemodnoise(inf,4,1,Fs/2,8,T,Fs);
+t2=(0:length(Env2pt)-1)/Fs-1/Fm/2;
+plot(t2,Env2pt,'k')
+axis([0 1 0 1])
+set(gca,'YTick',[0 1])
+set(gca,'box','off')
+
+subplot(3,1.5,4)
+[X,Env3pt,Fm]=pnbsplinemodnoise(inf,4,1,Fs/2,8,T,Fs);
+t3=(0:length(Env3pt)-1)/Fs-1/Fm/2;
+plot(t3,Env3pt,'k')
+axis([0 1 0 1])
+set(gca,'YTick',[0 1])
+set(gca,'box','off')
+
+
+figure
+%%%%%%%%%% POWER SPCTRUM
+subplot(333)
+T=20;
+[X,Env1,Fm]=pnbsplinemodnoise(inf,4,1,4,8,T,Fs);
+W=kaiser(length(Env1),5)';
+N=4*2^ceil(log2(length(Env1)));
+Pxx=abs(fft(Env1,N)).^2;
+Pxx=Pxx/Pxx(1);
+faxis=(0:N-1)/N*Fs;
+i=find(3.9<faxis & faxis<4.1);
+Max4=max(Pxx(i));
+plot(faxis,(Pxx),'k')
+xlim([0 32])
+H1=abs(fft(h1,N)).^2;
+ii=max(find(faxis<4));
+H1=H1/H1(ii)*Max4;
+hold on
+plot(faxis,H1,'r')
+set(gca,'box','off')
+set(gca,'YTick',[0 1])
+
+subplot(336)
+T=20;
+[X,Env2,Fm]=pnbsplinemodnoise(inf,4,1,8,8,T,Fs);
+W=kaiser(length(Env2),5)';
+N=4*2^ceil(log2(length(Env2)));
+Pxx=abs(fft(Env2,N)).^2;
+Pxx=Pxx/Pxx(1);
+faxis=(0:N-1)/N*Fs;
+i=find(3.9<faxis & faxis<4.1);
+Max4=max(Pxx(i));
+plot(faxis,(Pxx),'k')
+xlim([0 32])
+H2=abs(fft(h2,N)).^2;
+ii=max(find(faxis<4));
+H2=H2/H2(ii)*Max4;
+hold on
+plot(faxis,H2,'g')
+set(gca,'box','off')
+set(gca,'YTick',[0 1])
+
+subplot(339)
+T=20;
+[X,Env3,Fm]=pnbsplinemodnoise(inf,4,1,16,8,T,Fs);
+W=kaiser(length(Env3),5)';
+N=4*2^ceil(log2(length(Env3)));
+Pxx=abs(fft(Env3,N)).^2;
+Pxx=Pxx/Pxx(1);
+faxis=(0:N-1)/N*Fs;
+i=find(3.9<faxis & faxis<4.1);
+Max4=max(Pxx(i));
+plot(faxis,(Pxx),'k')
+xlim([0 32])
+H3=abs(fft(h3,N)).^2;
+ii=max(find(faxis<4));
+H3=H3/H3(ii)*Max4;
+hold on
+plot(faxis,H3,'b')
+set(gca,'box','off')
+set(gca,'YTick',[0 1])

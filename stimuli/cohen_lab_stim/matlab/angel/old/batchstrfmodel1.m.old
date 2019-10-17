@@ -1,0 +1,52 @@
+%function batchstrfmodel(dirname,option1,option2,display);
+% 
+% Function
+%              fit the STRF and batch files (*dB.mat and *Lin.mat) into database and files (*dB_m.mat and *Lin_m.mat)
+% Input
+%           dirname   the name of directory that has files named *dB.mat and *Lin.mat
+%           option1   'STRFs'  fit significant STRF
+%                     'STRF'   fit STRF
+%           option2   'IC'     fit STRF in IC
+%                     'CTX'    fit STRF in the auditory cortex
+%
+%  ANQI QIU 
+%  11/12/2001
+
+
+function batchstrfmodel1(dirname,option1,option2,display);
+
+if nargin<2
+   display='n';
+end;
+
+D=dir([dirname '*dB.mat']);
+[N,M]=size(D);
+clear M;
+
+for m=1:N,
+   if ~strcmp('',D(m).name)
+      infilename=[dirname D(m).name];
+      outfilename=[infilename(1:length(infilename)-4) '_m.mat'];
+      strfmodelsave1(infilename,outfilename,option1,option2,display);
+      clc;
+      disp(D(m).name)
+      pause
+      close all;
+   end
+end
+
+D=dir([dirname '*Lin.mat']);
+[N,M]=size(D);
+clear M;
+
+for m=1:N,
+   if ~strcmp('',D(m).name)
+      infilename=[dirname D(m).name];
+      outfilename=[infilename(1:length(infilename)-4) '_m.mat'];
+      strfmodelsave1(infilename,outfilename,option1,option2,display);
+      clc;
+      disp(D(m).name)
+      pause
+      close all;
+   end
+end
