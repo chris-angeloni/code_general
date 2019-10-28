@@ -98,6 +98,11 @@ if exist('weighting','var')
     end
 end
 
+% check for no spikes
+if all(isnan(y))
+    y = zeros(size(y));
+end
+
 % fit nonlinearity
 try
     mdl = @(a,x)(a(1) + a(2)*exp(x*a(3)));
