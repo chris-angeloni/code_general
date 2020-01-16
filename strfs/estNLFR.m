@@ -1,4 +1,4 @@
-function [x_orig,y_orig,mdl,ahat,p,dm] = estNLFR(fr,frh,npoints,weighting,thresh);
+function [x_orig,y_orig,mdl,ahat,p,dm] = estNLFR(fr,frh,npoints,weighting,model,thresh);
 
 %% function [x,y,mdl,ahat,p] = estNLFR(fr,frh,pct,thresh);
 %
@@ -11,6 +11,7 @@ function [x_orig,y_orig,mdl,ahat,p,dm] = estNLFR(fr,frh,npoints,weighting,thresh
 %  frh: predicted firing rate (should be same sampling as fr)
 %  pct: resolution of data sampling for prediction distribution
 %  thresh: Mahalanobis distance threshold
+%  model: 'exponential' or 'sigmoid'
 %
 % OUTPUT:
 %  x: prediction bins
@@ -83,11 +84,6 @@ else
     y_orig = y;
 end
 
-if isempty(x) || isempty(y)
-    disp('NO DATA');
-    keyboard
-end
-
 % force weights with no values to 1
 n(n==0) = 1;
 
@@ -98,59 +94,105 @@ if exist('weighting','var')
     end
 end
 
-% fit nonlinearity
-try
+if ~exist('model','var') | strcmp(model,'exponential')
+    % exponential model
     mdl = @(a,x)(a(1) + a(2)*exp(x*a(3)));
-    a0 = [nanmean(y);nanmax(y)/nanmax(x);.05];    %[mean(y);.3;.05]; %[mean(y);max(y)/max(x);.05]; %[mean(y);mean(y)/mean(x);.05];
-    [ahat,r,J,cov,mse] = nlinfit(x,y,mdl,a0,'Weights',n);
-catch ME
-    try
-        mdl = @(a,x)(a(1) + a(2)*exp(x*a(3)));
-        a0 = [nanmean(y);nanmean(y)/nanmean(x);.05];
+    
+    a01 = [nanmean(y);nanmax(y)/nanmax(x);.05];
+    a02 = [nanmean(y);nanmean(y)/nanmean(x);.05];
+    a03 = [nanmean(y);.3;.05];
+    a04 = [nanmean(y);0;.01];
+    ahat = [nan nan nan];
+    
+elseif strcmp(model,'sigmoid')
+    % sigmoid model
+    mdl = @(a,x)(a(1) + a(2) ./ (1 + exp(-(x-a(3)).*a(4))));
+    
+    a01 = [nanmean(y);nanmax(y)/nanmax(x);nanmean(x);.05];;
+    a02 = [nanmean(y);nanmean(y)/nanmean(x);nanmean(x);.05];
+    a03 = [nanmean(y);.3;nanmean(x);.05];
+    a04 = [nanmean(y);0;nanmean(x);.05];
+    ahat = [nan nan nan nan];
+    
+end
+
+if isempty(y)
+    y = nan(size(x));
+    y_orig = y;
+end
+
+if ~all(isnan(y))
+    % fit nonlinearity
+    try        
+        a0 = a01;
         [ahat,r,J,cov,mse] = nlinfit(x,y,mdl,a0,'Weights',n);
+        
     catch ME
         try
-            mdl = @(a,x)(a(1) + a(2)*exp(x*a(3)));
-            a0 = [nanmean(y);.3;.05];
+            a0 = a02;
             [ahat,r,J,cov,mse] = nlinfit(x,y,mdl,a0,'Weights',n);
+            
         catch ME
             try
-                mdl = @(a,x)(a(1) + a(2)*exp(x*a(3)));
-                a0 = [nanmean(y);0;.01];
+                a0 = a03;
                 [ahat,r,J,cov,mse] = nlinfit(x,y,mdl,a0,'Weights',n);
+            
             catch ME
-                keyboard
+                try
+                    a0 = a04;
+                    [ahat,r,J,cov,mse] = nlinfit(x,y,mdl,a0,'Weights',n);
+                
+                catch ME
+                    keyboard
+                    
+                end
             end
         end
     end
+    
+    % compute some parameters
+    x1 = x(1);
+    x2 = x(end);
+    p.y1 = mdl(ahat,x1);
+    p.yend = mdl(ahat,x2);
+    p.y0 = mdl(ahat,0);
+
+    % slope from y0 to max
+    p.slope0x = (p.yend - p.y0) / (x2-0);
+
+    % slope from bottom to top
+    p.slopeAll = (p.yend-p.y1) / (x2-x1);
+
+    % offset
+    p.offset = ahat(1) + ahat(2);
+
+    % baseline
+    p.baseline = mdl(ahat,-10000);
+
+    % slope from 0 to 2
+    y2 = mdl(ahat,2);
+    p.slope02 = (y2-p.y0) / (2-0);
+
+    % slop from 0 to 1
+    y1 = mdl(ahat,1);
+    p.slope01 = (y1-p.y0) / (1-0);
+    
+else
+    
+    p.y1 = nan;
+    p.yend  = nan;
+    p.y0  = nan;
+    p.slope0x  = nan;
+    p.slopeAll  = nan;
+    p.offset  = nan;
+    p.baseline  = nan;
+    p.slope02  = nan;
+    p.slope01  = nan;
+    
 end
 
-% compute some parameters
-x1 = x(1);
-x2 = x(end);
-p.y1 = mdl(ahat,x1);
-p.yend = mdl(ahat,x2);
-p.y0 = mdl(ahat,0);
 
-% slope from y0 to max
-p.slope0x = (p.yend - p.y0) / (x2-0);
 
-% slope from bottom to top
-p.slopeAll = (p.yend-p.y1) / (x2-x1);
-
-% offset
-p.offset = ahat(1) + ahat(2);
-
-% baseline
-p.baseline = mdl(ahat,-10000);
-
-% slope from 0 to 2
-y2 = mdl(ahat,2);
-p.slope02 = (y2-p.y0) / (2-0);
-
-% slop from 0 to 1
-y1 = mdl(ahat,1);
-p.slope01 = (y1-p.y0) / (1-0);
 
 %  hold on
 %  scatter(x,y)

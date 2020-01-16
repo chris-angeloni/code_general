@@ -3,10 +3,15 @@
 % NOTE: the way that the stimulus is made (dbs), the first row is
 % the lowest frequency, last row is highest frequency
 % load a stimulus design file
-load(['180517-contrast-params.mat'])
+n = 1;
+MU = 40;
+SD = 15;
+f = 4000 .* 2.^([0:24]/6);
+blockSamps = 20 / .025;
+[~,db] = makeDRCAmps_scaled(n,MU,SD,length(f),blockSamps,.1);
 
 % cleanly resample it to spike output resolution and normalize
-S = cleanResample(dbs{1},params.chordDuration,1/200);
+S = cleanResample(db,.025,1/200);
 NS = (S - min(S(:))) / (max(S(:)) - min(S(:)));
 
 % set the neurons tuning properties (these are set with a BF of
@@ -14,8 +19,7 @@ NS = (S - min(S(:))) / (max(S(:)) - min(S(:)));
 % essentially, this builds a probability distribution over
 % frequencies to determine the likelihood of a spike at that frequency
 BF = 16000;
-spikeProbs = normpdf(1:length(params.freqs),find(params.freqs==BF), ...
-                     2);
+spikeProbs = normpdf(1:length(f),find(f==BF),2);
 
 % multiple the normalized stimulus by the spike probability and sum
 % over all the frequency bins; then set a threshold for spiking
@@ -25,7 +29,7 @@ spikeInd = bandP > .65
 
 % make spike times occur on average 20ms after the stimulus
 % presentation with random jitter of 5ms
-offset = .02;
+offset = .03;
 jitter = .005;
 spikeT = find(spikeInd>0)/1/200 + ...
          normrnd(offset,jitter,1,sum(spikeInd>0))
@@ -45,7 +49,7 @@ STA = genSTA(spikes,S,w,fps);
 % plot it using imagesc (the bin labels are incorrectly spaced!)
 subplot(1,2,1)
 t = (-w:1/fps:0) * 1000;
-f = params.freqs / 1000;
+f = f / 1000;
 imagesc(t,flipud(f),STA);
 set(gca,'ydir','normal')
 xlabel('Time (ms)');
@@ -56,9 +60,29 @@ subplot(1,2,2)
 s = surf(t,flipud(f),STA);
 s.EdgeColor = 'none';
 set(gca,'yscale','log')
+set(gca,'ytick',(4000 .* 2.^([0:4]))/1000);
 axis tight
 view(2)
 xlabel('Time (ms)');
 ylabel('Frequency (kHz)');
 
+% fit and plot fits
+F = f * 1000;
+STAs = STA - mean(STA);
+STAs(STAs < 0) = 0;
+STAs = imgaussfilt(STAs,1);
+[af,at,gauss2] = fitSTA(t,F,STAs)
+
+figure;
+subplot(3,3,[4 5 7 8]);
+plotSTA(t,F,STAs);
+subplot(3,3,[6 9]); hold on;
+plot(mean(STAs,2),F,'k')
+plot(gauss2(af,F),F,'r');
+set(gca,'yscale','log')
+axis tight;
+subplot(3,3,[1 2]); hold on;
+plot(t,mean(STAs,1),'k')
+plot(t,gauss2(at,t),'r');
+axis tight;
 
