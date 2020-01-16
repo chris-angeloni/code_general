@@ -94,6 +94,7 @@ if exist('weighting','var')
     end
 end
 
+
 if ~exist('model','var') | strcmp(model,'exponential')
     % exponential model
     mdl = @(a,x)(a(1) + a(2)*exp(x*a(3)));
