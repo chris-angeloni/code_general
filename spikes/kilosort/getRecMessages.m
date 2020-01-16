@@ -25,9 +25,9 @@ msgs = msgs(~cellfun('isempty',msgs));
 % get timestamps
 ts = double(readNPY(fnt));
 
-fprintf('\n\n\n');
-fprintf('Timestamp Message\n-----------------\n');
+fprintf('\n');
+fprintf('\tTimestamp Message\n\t-----------------\n');
 for i = 1:length(msgs)
-    fprintf('%d %d %s\n',i,ts(i),msgs{i})
+    fprintf('\t%d %d %s\n',i,ts(i),msgs{i})
 end
-fprintf('\n\n\n');
+fprintf('\n');

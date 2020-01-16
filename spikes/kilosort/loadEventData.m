@@ -101,9 +101,9 @@ if ~exist(recInfo,'file')
         
         % print messages and timestamps
         for i = 1:length(messages_text{2})
-            fprintf('%d %d %s\n',i,messages_text{1}(i),messages_text{2}{i});
+            fprintf('\t%d %d %s\n',i,messages_text{1}(i),messages_text{2}{i});
         end
-        ind = input('Enter the index of the desired start event: ');
+        ind = input(sprintf('\tEnter the index of the desired start event: '));
         blockStart = messages_text{1}(ind) / fs;
         msgtext = messages_text;
         
@@ -118,10 +118,9 @@ if ~exist(recInfo,'file')
             d = fullfile(msgPath,msgDir.name);
             fnm = fullfile(d,'text.npy');
             fnt = fullfile(d,'timestamps.npy');
-            fprintf('RECORDING MESSAGES:\n');
             [msgtxt, ts] = getRecMessages(fnm,fnt);
             tss = ts / fs;
-            ind = input('Enter the index of the desired start event: ');
+            ind = input(sprintf('\tEnter the index of the desired start event: '));
             blockStart = tss(ind);
             msgtext{1}(:) = ts;
             msgtext{2} = msgtxt;
