@@ -1,4 +1,4 @@
-function [sta, nSpikes] = genSTA(spikes,S,w,fps)
+function [sta, nSpikes] = genSTA(spikes,S,w,fps,'norm')
 
 %% function [sta nSpikes] = genSTA(spikes,S,w,fps);
 % 
@@ -11,6 +11,7 @@ function [sta, nSpikes] = genSTA(spikes,S,w,fps)
 %  w = length of the stimulus window to consider for the STA (how
 %      far back in time do you want your STA to go)
 %  fps = stimulus frame rate (1 / chord length)
+%  norm = if 'norm' then normalize by mean and sum of squares
 %  
 % OUTPUTS:
 %  sta = spike triggered average
@@ -37,3 +38,9 @@ end
 
 nSpikes = length(spikes);
 sta = sta / nSpikes;
+
+% normalize
+if exist('norm','var') & ~isempty(norm)
+    sta = sta - mean(sta(:));
+    sta = sta ./ sqrt(sum(sta(:).^2));
+end

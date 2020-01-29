@@ -1,4 +1,4 @@
-function [x_orig,y_orig,mdl,ahat,p,dm] = estNLFR(fr,frh,npoints,weighting,model,thresh);
+function [x_orig,y_orig,mdl,ahat,p,dm] = estNLFR(fr,frh,npoints,weighting,model,includeZero,thresh);
 
 %% function [x,y,mdl,ahat,p] = estNLFR(fr,frh,pct,thresh);
 %
@@ -26,6 +26,11 @@ warning off
 %fr = SmoothGaus(fr,3);
 %frh = SmoothGaus(frh,3);
 
+% by default, include zeros
+if ~exist('includeZero','var') | isempty(includeZero)
+    includeZero = true;
+end
+
 % by default, do point matching
 x = frh;
 y = fr;
@@ -51,7 +56,9 @@ if exist('npoints','var')
         
         % if there is a spike rate above linear prediction 0 that
         % is 0, set it to nan
-        y(y==0) = nan;
+        if ~includeZero
+            y(y==0) = nan;
+        end
                         
     end
     
