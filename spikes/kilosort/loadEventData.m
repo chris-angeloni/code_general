@@ -80,11 +80,13 @@ end
 % check for a recording info file
 recInfo = fullfile(root,'recInfo.mat');
 if ~exist(recInfo,'file')
+    
     % get the recording start time and sample rate
     if binFlag
         % if its a binary recording
         fn = [root filesep 'sync_messages.txt'];
         [startTime, fs] = getRecInfo(fn);
+        
     else
         % if its openEphys format
         fn = fullfile(root,'messages.events');
@@ -124,6 +126,7 @@ if ~exist(recInfo,'file')
             blockStart = tss(ind);
             msgtext{1}(:) = ts;
             msgtext{2} = msgtxt;
+            
         else
             % messages were not recorded, manually specify event index to
             % use
