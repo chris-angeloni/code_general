@@ -1,4 +1,4 @@
-function [sta, nSpikes] = genSTA(spikes,S,w,fps,'norm')
+function [sta, nSpikes] = genSTA(spikes,S,w,fps,norm)
 
 %% function [sta nSpikes] = genSTA(spikes,S,w,fps);
 % 

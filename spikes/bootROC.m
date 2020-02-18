@@ -1,11 +1,14 @@
 function [auc,p,dp,aucShuff,aucPct,hits,fas] = bootROC(nSpks,sSpks,n);
 
-% for now, just analyze signal and noise trials so that we have
-% enough reps
+%% function [auc,p,dp,aucShuff,aucPct,hits,fas] = bootROC(nSpks,sSpks,n);
+%
+% computes a bootstrapped estimate of the areau under the ROC curve
+
+% base ROC value
 [hits, fas, auc, dp] = computeROC(nSpks,sSpks);
 
 % bootstrapped simulation
-iterations = 2000;
+iterations = 1000;
 if ~exist('n','var')
     n(1) = length(nSpks);
     n(2) = length(sSpks);
