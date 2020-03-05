@@ -1,4 +1,4 @@
-function [p pl my] = patchErrorBars(X,Y,color,err,smth)
+function [p my erry] =errorBars(X,Y,color,err,smth)
 
 % function [p pl my] = patchErrorBars(X,Y,color,err,smth)
 
@@ -18,21 +18,13 @@ end
 my = nanmean(Y,1);
 if strcmp(err,'sem')
     erry = nanstd(Y,[],1) ./ sqrt(size(Y,1));
-    y = [my + erry fliplr(my-erry)];    
+    erry = repmat(erry,2,1);
 elseif strcmp(err,'prctile')
     erry = prctile(Y,[2.5 97.5],1);
-    y = [erry(1,:) fliplr(erry(2,:))];
+    erry = abs(my-erry);
 elseif strcmp(err,'std')
     erry = nanstd(Y,[],1);
-    y = [my + erry fliplr(my-erry)];
+    erry = repmat(erry,2,1);
 end
-x = [X fliplr(X)];
 
-hold on
-p = patch(x,y,1);
-p.EdgeAlpha = 0;
-p.FaceColor = color;
-p.FaceAlpha = .4;
-pl = plot(X,my,'Color',color,'LineWidth',1);
-
-
+p = errorbar(X,my,erry(1,:),erry(2,:),'Color',color);
