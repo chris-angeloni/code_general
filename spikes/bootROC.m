@@ -1,6 +1,6 @@
-function [auc,p,dp,aucShuff,aucPct,hits,fas] = bootROC(nSpks,sSpks,n);
+function [auc,p,dp,aucShuff,aucPct,hits,fas,sig] = bootROC(nSpks,sSpks,n);
 
-%% function [auc,p,dp,aucShuff,aucPct,hits,fas] = bootROC(nSpks,sSpks,n);
+%% function [auc,p,dp,aucShuff,aucPct,hits,fas,sig] = bootROC(nSpks,sSpks,n);
 %
 % computes a bootstrapped estimate of the areau under the ROC curve
 
@@ -24,14 +24,33 @@ for i = 1:iterations
     [tp(i,:),fp(i,:),aucShuff(i)] = computeROC(nSamp,sSamp,crits);
 end
 
-% compute percentile
+% compute percentile of chance in the shuffled distribution
 % p = 1 - sum(auc>aucShuff) / iterations;
-idx = find(sort(aucShuff) > .5,1,'first');
-if isempty(idx)
-    p = 1;
-else
-    p = idx / iterations;
-end
+p = getPercentile(aucShuff,.5);
 
 % compute 95% confidence interval
 aucPct = prctile(aucShuff,[2.5 97.5]);
+
+% compute significance (ie. if the shuffled distribution includes
+% chance below 95%)
+sig = ~(.5 >= aucPct(1) & .5 <= aucPct(2));
+
+
+
+
+
+
+
+
+
+
+
+function x = getPercentile(data,val)
+
+%% function x = getPercentile(data,val)
+%
+% returns percentile of value in distribution data
+
+perc = prctile(data,0:.01:100);
+[c index] = min(abs(perc'-val));
+x = (index + 1) / 10000;

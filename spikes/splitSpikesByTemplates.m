@@ -1,4 +1,4 @@
-function [block, cellInfo, labels] = splitSpikesByTemplates(root,templateDir,drift_correct)
+function [block, cellInfo, labels, spikes, events, fs] = splitSpikesByTemplates(root,templateDir,drift_correct)
 
 %% load events and spikes from non-noise units
 [spikes,events,fs,cellInfo,labels] = getSpikeEventsKS(root);
@@ -25,7 +25,6 @@ for i = 1:length(template)
     
     % for stim and laser events
     for j = 1:2
-        
         tmp{i}{j} = strfind(d{j}',template(i).diffs{j}');
         
     end
@@ -33,36 +32,65 @@ for i = 1:length(template)
     % if there is at least one match to the template
     if ~all(cellfun('isempty',tmp{i}))
         
-         % if there is more than one matching segment, duplicate
-         % the template until there is only one match
+        repCount = 1;       
+        
+        % if there is more than one matching segment, duplicate
+        % the template until it covers all of the different blocks
         if any(cellfun(@length,tmp{i}) > 1)
-           
-            repCount = 1;
             
-            while any(cellfun(@length,tmp{i}) > 1)
+            
+            while 1
                 
                 repCount = repCount + 1;
                 
-                % to repeat the stimulus, you need to assume some
-                % repetition of the structure... so you need to
-                % know the duration of the last event
-                % difference... this kinda sucks because it could
-                % be impossible to know with some stimuli... for
-                % now lets assume we know it
+                % repeat the stimulus given the stimulus length
                 newtemp = template(i).times;
                 for ii = 1:repCount-1
-                    newtemp{1} = [newtemp{1}; (template(i).stimLength-1) / template(i).fs + ...
+                    newtemp{1} = [newtemp{1}; (template(i).stimLength-1)*ii / template(i).fs + ...
                                   template(i).times{1}];
-                    newtemp{2} = [newtemp{2}; (template(i).stimLength-1) / template(i).fs + ...
+                    newtemp{2} = [newtemp{2}; (template(i).stimLength-1)*ii / template(i).fs + ...
                                   template(i).times{2}];
                 end
                 
                 newtemp{1} = round(diff(newtemp{1}),3);
                 newtemp{2} = round(diff(newtemp{2}),3);
                 
+                % look for matches again
                 for j = 1:2
-                    
                     tmp{i}{j} = strfind(d{j}',newtemp{j}');
+                    
+                end
+                
+                % check for multiple blocks
+                if any(cellfun(@length,tmp{i}) > 1)
+                    
+                    % if it still finds more than one block, check
+                    % if the block onsets are equal to the number
+                    % of events, if so, we need to keep replicating
+                    if ~any(diff(tmp{i}{1}) == length(template(i).times{1})) & ...
+                            ~any(diff(tmp{i}{2}) == length(template(i).times{2}))
+                        
+                        % if they're not equal to the number of the
+                        % events check that the blocks are well seperated
+                        if ~any(diff(tmp{i}{1}) == 2) & ~any(diff(tmp{i}{2}) == 2)
+                            templateMatch = true;
+                            break;
+                            
+                        end
+                        
+                    end
+                    
+                elseif all(cellfun('isempty',tmp{i}))
+                    % if it doesn't find any matches after
+                    % replicating, no match
+                    templateMatch = false;
+                    break;
+                    
+                elseif any(cellfun(@length,tmp{i}) == 1)
+                    % otherwise, if it found only 1 match for stim and
+                    % laser, so it is a match;
+                    templateMatch = true;
+                    break;
                     
                 end
                 
@@ -71,14 +99,14 @@ for i = 1:length(template)
             template(i).diffs = newtemp;
             
         end
-       
+        
         
         % check if there are supposed to be laser events, but
         % there are none in this template or vice versa
         stimI = stim(tmp{i}{1}:tmp{i}{1}+ ...
                      length(template(i).diffs{1}));
         laserI = laser(tmp{i}{2}:tmp{i}{2}+ ...
-                     length(template(i).diffs{2}));
+                       length(template(i).diffs{2}));
         
         if ~isempty(stimI) 
             if (sum(laser >= stimI(1) & laser <= stimI(end)) > 1 && ...
@@ -112,46 +140,101 @@ for i = 1:length(template)
     
     if templateMatch
         %fprintf('\t*********Template matched!\n\n');
-        cnt = cnt + 1;
-        block(cnt).name = template(i).name;
-        block(cnt).file = template(i).fileName;
-        block(cnt).stimInfo = template(i).stimInfo;
-        block(cnt).fs = template(i).fs;
-        
-        for j = 1:2
-            block(cnt).startIndex{j} = tmp{i}{j};
-            block(cnt).endIndex{j} = tmp{i}{j} + ...
-                length(template(i).diffs{j});
+        for ii = 1:max(cellfun(@length,tmp{i}))
+            cnt = cnt + 1;
+            block(cnt).name = template(i).name;
+            block(cnt).file = template(i).fileName;
+            block(cnt).stimInfo = template(i).stimInfo;
+            block(cnt).fs = template(i).fs;
+            block(cnt).nreps = repCount;
             
-        end
+            if ~isempty(tmp{i}{1})
+                block(cnt).startIndex{1} = tmp{i}{1}(ii);
+                block(cnt).endIndex{1} = tmp{i}{1}(ii) + ...
+                    length(template(i).diffs{1});
+                stimI = stim(block(cnt).startIndex{1}: ...
+                             block(cnt).endIndex{1});
+                block(cnt).stimOn = stimOn(ismember(stimOn,stimI));
+                block(cnt).stimOff = stimOff(ismember(stimOn,stimI));
+            else
+                block(cnt).stimOn = [];
+                block(cnt).stimOff = [];
+                block(cnt).startIndex{1} = [];
+                block(cnt).endIndex{1} = [];
+            end
             
-        if ~isempty(block(cnt).startIndex{1})
-            stimI = stim(block(cnt).startIndex{1}: ...
-                         block(cnt).endIndex{1});
-            block(cnt).stimOn = stimOn(ismember(stimOn,stimI));
-            block(cnt).stimOff = stimOff(ismember(stimOn,stimI));
-        else
-            block(cnt).stimOn = [];
-            block(cnt).stimOff = [];
-        end
+            if ~isempty(tmp{i}{2})
+                block(cnt).startIndex{2} = tmp{i}{2}(ii);
+                block(cnt).endIndex{2} = tmp{i}{2}(ii) + ...
+                    length(template(i).diffs{2});
+                laserI = laser(block(cnt).startIndex{2}: ...
+                               block(cnt).endIndex{2});
+                block(cnt).laserOn = laserOn(ismember(laserOn,laserI));
+                block(cnt).laserOff = laserOff(ismember(laserOn,laserI));
+            else
+                block(cnt).laserOn = [];
+                block(cnt).laserOff = [];
+                block(cnt).startIndex{2} = [];
+                block(cnt).endIndex{2} = [];
+            end
+            
+            % template number
+            block(cnt).template = i;
+
+            % start and end times
+            block(cnt).start = min([stimI; laserI]);
+            block(cnt).end = block(cnt).start + ((template(i).stimLength * block(cnt).nreps) ...
+                                                 / template(i).fs);
         
-        if ~isempty(block(cnt).startIndex{2})
-            laserI = laser(block(cnt).startIndex{2}: ...
-                         block(cnt).endIndex{2});
-            block(cnt).laserOn = laserOn(ismember(laserOn,laserI));
-            block(cnt).laserOff = laserOff(ismember(laserOn,laserI));
-        else
-            block(cnt).laserOn = [];
-            block(cnt).laserOff = [];
-        end
         
-        block(cnt).start = min([stimI; laserI]);
-        block(cnt).end = block(cnt).start + (template(i).stimLength ...
-                                             / template(i).fs);
+        end
         
     end
     
 end
+
+% sort blocks by start time
+[~,sortI] = sort([block.start]);
+block = block(sortI);
+
+% interactive more for blocks that match more than one template
+if any(diff([block.start])==0)
+        
+    I = find(diff([block.start])==0,1,'first');
+    while ~isempty(I)
+        
+        cnt = 1;
+        
+        fprintf('\nFound blocks matched with more than one template!\n')
+        fprintf('Check your recording notes to see which was the correct stimulus, maybe these event messages will help:\n')
+        for j = 1:length(events.msgtext{2})
+            fprintf('\t%s\n',events.msgtext{2}{j})
+        end
+        fprintf('\n');
+        
+        fprintf('\nPress [%d] to keep block %d or [%d] to keep block %d:\n\n',...
+                I,I,I+1,I+1)
+        fprintf('\tBlock %d: %s -- %d reps\n',I,block(I).name, ...
+                block(I).nreps);
+        fprintf('\tBlock %d: %s -- %d reps\n',I+1,block(I+1).name, ...
+                block(I+1).nreps);
+        
+
+        in = input('');
+        if in == I
+            block(I+1) = [];
+            I = find(diff([block.start])==0,1,'first');
+        elseif in == I+1
+            block(I) = [];
+            I = find(diff([block.start])==0,1,'first');
+        else
+            fprintf(['no blocks selected, keeping all of them...\' ...
+                     'n']);
+        end
+    end
+    
+end
+                
 
 
 fprintf('Found %d stim blocks for %s\n',length(block),root);
@@ -159,7 +242,7 @@ fprintf('Found %d stim blocks for %s\n',length(block),root);
 % for each block, get the spikes
 for b = 1:length(block)
     
-    fprintf('\tBlock %d: %s\n',b,block(b).name);
+    fprintf('\tBlock %d: %s -- %d reps\n',b,block(b).name,block(b).nreps);
     
     if size(spikes.times,1) == 1
         spikes.times = spikes.times';
@@ -177,6 +260,39 @@ for b = 1:length(block)
     if exist('drift_correct','var')
         
         if drift_correct
+            
+            % testing code for a specific stimulus
+            if strcmp(block(b).name, ...
+                      'behaviorPsychWithLaserPulse.wav')
+                
+                stimLength = (template(block(b).template).stimLength-1)/template(block(b).template).fs;
+                
+                ev = sort([block(b).stimOn; block(b).stimOff]);
+                
+                ev_actual = template(block(b).template).times{1};
+                for i = 1:block(b).nreps-1
+                    ev_actual = [ev_actual; ...
+                                 stimLength * i + template(block(b).template).times{1}];
+                end
+                
+                x = [ones(size(ev)) ev];
+                y = ev_actual;
+                
+                beta = x\y;
+                
+                % scale times by the drift
+                block(b).spikes = [ones(size(block(b).spikes)) block(b).spikes] * beta;
+                if ~isempty(block(b).laserOn)
+                    block(b).laserOn = [ones(size(block(b).laserOn)) block(b).laserOn] * beta;
+                    block(b).laserOff = [ones(size(block(b).laserOff)) block(b).laserOff] * beta;
+                end
+                if ~isempty(block(b).stimOn)
+                    block(b).stimOn = [ones(size(block(b).stimOn)) block(b).stimOn] * beta;
+                    block(b).stimOff = [ones(size(block(b).stimOff)) block(b).stimOff] * beta;
+                end
+                
+            end
+
             
             % check stim events
             ev = block(b).stimOn;
@@ -196,6 +312,7 @@ for b = 1:length(block)
                 y = [0; cumsum(de)];
                 
                 beta = x\y;
+                
 
                 % scale times by the drift
                 block(b).spikes = [ones(size(block(b).spikes)) block(b).spikes] * beta;
@@ -218,7 +335,3 @@ for b = 1:length(block)
     end
     
 end
-
-% sort blocks by start time
-[~,sortI] = sort([block.start]);
-block = block(sortI);

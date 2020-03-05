@@ -34,5 +34,6 @@ for i = 1:length(uPatt)
     NR(i,:) = Pn/Ps;
         
 end
+
     
     
