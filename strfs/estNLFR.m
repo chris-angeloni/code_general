@@ -57,7 +57,7 @@ if exist('npoints','var')
         % if there is a spike rate above linear prediction 0 that
         % is 0, set it to nan
         if ~includeZero
-            y(y==0) = nan;
+            y(y==0 & x>0) = nan;
         end
                         
     end

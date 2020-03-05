@@ -22,7 +22,7 @@ function [s, STA] = plotSTA(t,f,STA,smth,clim)
 % plot it (see flipud(f) below)
 
 % smoothing
-if exist('smth','var')
+if exist('smth','var') & ~isempty(smth)
     STA = imgaussfilt(STA,smth);
 end
 
