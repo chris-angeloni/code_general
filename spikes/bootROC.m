@@ -1,6 +1,6 @@
-function [auc,p,dp,aucShuff,aucPct,hits,fas,sig] = bootROC(nSpks,sSpks,n);
+function [auc,p,dp,aucShuff,aucPct,hits,fas,sig] = bootROC(nSpks,sSpks,n,its);
 
-%% function [auc,p,dp,aucShuff,aucPct,hits,fas,sig] = bootROC(nSpks,sSpks,n);
+%% function [auc,p,dp,aucShuff,aucPct,hits,fas,sig] = bootROC(nSpks,sSpks,n,its);
 %
 % computes a bootstrapped estimate of the areau under the ROC curve
 
@@ -8,7 +8,10 @@ function [auc,p,dp,aucShuff,aucPct,hits,fas,sig] = bootROC(nSpks,sSpks,n);
 [hits, fas, auc, dp] = computeROC(nSpks,sSpks);
 
 % bootstrapped simulation
-iterations = 1000;
+if ~exist('its','var') | isempty(its)
+    its = 1000;
+end
+
 if ~exist('n','var')
     n(1) = length(nSpks);
     n(2) = length(sSpks);
@@ -18,7 +21,7 @@ else
 end
 
 crits = linspace(min([nSpks; sSpks]),max([nSpks; sSpks]),100);
-for i = 1:iterations
+for i = 1:its
     nSamp = randsample(nSpks,n(1),true);
     sSamp = randsample(sSpks,n(2),true);
     [tp(i,:),fp(i,:),aucShuff(i)] = computeROC(nSamp,sSamp,crits);

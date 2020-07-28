@@ -77,6 +77,9 @@ else
     % hold off
 end
 
+% flag for when the right message isn't found
+noMsgFlag = false;
+
 % check for a recording info file
 recInfo = fullfile(root,'recInfo.mat');
 if ~exist(recInfo,'file')
@@ -122,12 +125,18 @@ if ~exist(recInfo,'file')
             fnt = fullfile(d,'timestamps.npy');
             [msgtxt, ts] = getRecMessages(fnm,fnt);
             tss = ts / fs;
-            ind = input(sprintf('\tEnter the index of the desired start event: '));
-            blockStart = tss(ind);
-            msgtext{1}(:) = ts;
-            msgtext{2} = msgtxt;
+            ind = input(...
+                sprintf('\tEnter the index of the desired start event\n(press ESC if not displayed): '));
+            if ~isempty(ind)
+                blockStart = tss(ind);
+                msgtext{1}(:) = ts;
+                msgtext{2} = msgtxt;
+            else
+                noMsgFlag = true;
+            end
+        end
             
-        else
+        if ~strcmp(msgDir.name,'TEXT_group_1') | noMsgFlag
             % messages were not recorded, manually specify event index to
             % use
             f = figure;
@@ -136,8 +145,8 @@ if ~exist(recInfo,'file')
             plot(lickOns(1:end-1),diff(lickOns),'r.');
             stimOns = ev.ts(ev.state==1)/fs;
             plot(stimOns(1:end-1),diff(stimOns),'k.');
-            set(gca,'yscale','log');
-            set(gca,'ytick',logspace(0,log10(ceil(max(diff(stimOns)/10))*10),10))
+            %set(gca,'yscale','log');
+            %set(gca,'ytick',logspace(0,log10(ceil(max(diff(stimOns)/10))*10),10))
             hold off
                         
             fprintf('Click the first event and press enter to select...\n');
@@ -154,7 +163,7 @@ if ~exist(recInfo,'file')
                     break;
                 end
             end
-            blockStart = stimOns(ind)/fs;
+            blockStart = stimOns(ind);
             close(f);
             msgtext = [];
         end

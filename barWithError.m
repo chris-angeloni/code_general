@@ -9,7 +9,6 @@ function h = barWithError(Y,label,colors,err)
 % err: (optional) error calculation specification (either 'sem' or
 % 'prctile')
 
-
 if ~exist('err','var') || isempty(err)
     err = 'sem';
 end
@@ -17,19 +16,36 @@ if ~exist('colors','var') || isempty(colors)
     colors = repmat([.5 .5 .5],size(Y,2),1);
 end
 
-% by default, assume we're averaging over the columns
-my = nanmean(Y,1);
-if strcmp(err,'sem')
-    erry = nanstd(Y,[],1) ./ sqrt(size(Y,1));
-    y = [my+erry; my-erry];
-elseif strcmp(err,'prctile')
-    erry = prctile(Y,[.025 97.5],1);
-    y = [erry(1,:); erry(2,:)];
+% check if the input data is a cell
+if iscell(Y)
+    
+    for i = 1:size(Y,2)
+        my(i) = nanmean(Y{i});
+        if strcmp(err,'sem')
+            erry = nanstd(Y{i}) ./ sqrt(length(Y{i}));
+            y(:,i) = [my(i)+erry; my(i)-erry];
+        elseif strcmp(err,'prctile')
+            y(:,i) = prctile(Y{i},[2.5 97.5]);
+        end
+    end
+    
+else
+
+    % by default, assume we're averaging over the columns
+    my = nanmean(Y,1);
+    if strcmp(err,'sem')
+        erry = nanstd(Y,[],1) ./ sqrt(size(Y,1));
+        y = [my+erry; my-erry];
+    elseif strcmp(err,'prctile')
+        erry = prctile(Y,[2.5 97.5],1);
+        y = [erry(1,:); erry(2,:)];
+    end
+    
 end
-x = 1:size(Y,2);
 
 % plot
 hold on
+x = 1:size(Y,2);
 for i = 1:size(Y,2)
     h(i) = bar(x(i),my(i));
     h(i).FaceColor = colors(i,:);

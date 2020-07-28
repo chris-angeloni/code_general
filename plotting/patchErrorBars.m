@@ -2,14 +2,25 @@ function [p pl my] = patchErrorBars(X,Y,color,err,smth)
 
 % function [p pl my] = patchErrorBars(X,Y,color,err,smth)
 
+if nargin == 1
+    Y = X;
+    X = 1:size(X,2);
+end
+
 if ~exist('err','var') || isempty(err)
     err = 'sem';
 end
 
+if ~exist('color','var') || isempty(color)
+    color = 'k';
+end
+
 % smooth if selected
-if exist('smth','var') && ~isempty(smth)
-    for i = 1:size(Y,1)
-        Y(i,:) = SmoothGaus(Y(i,:),smth);
+if exist('smth','var') 
+    if ~isempty(smth)
+        for i = 1:size(Y,1)
+            Y(i,:) = SmoothGaus(Y(i,:),smth);
+        end
     end
 end
     

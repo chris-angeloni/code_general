@@ -19,15 +19,22 @@ function [s, STA] = plotSTA(t,f,STA,smth,clim)
 % from low to high frequency, this means that the STA is computed
 % such that the lowest frequency is the top row, and the highest
 % frequency is the bottom row, reversed from how you would like to
-% plot it (see flipud(f) below)
+% plot it
 
 % smoothing
 if exist('smth','var') & ~isempty(smth)
-    STA = imgaussfilt(STA,smth);
+    STA = imgaussfilt(STA,smth.*[1 2]);
 end
 
-% surf plot (note, imagesc does not plot correctly)
-s = surf(t,flipud(f),STA);
+% find even octave labels
+octs = find(mod(f,1000)==0);
+
+% plot with imagesc
+s = imagesc(t,1:length(f),STA);
+set(gca,'ydir','normal'); % flip it to match frequency order
+set(gca,'ytick',octs);
+set(gca,'yticklabels',num2str(f(octs)'/1000));
+
 
 % recale axis
 if exist('clim','var')
@@ -35,9 +42,6 @@ if exist('clim','var')
 end
 
 % make it look pretty
-s.EdgeColor = 'none';
-set(gca,'yscale','log')
 axis tight
-view(2)
-xlabel('Time (ms)');
-ylabel('Frequency (kHz)');
+%xlabel('Time (ms)');
+%ylabel('Frequency (kHz)');

@@ -48,7 +48,7 @@ if exist('npoints','var')
         end
         x = edges(1:end-1) - diff(edges)/2;
         y = nl(1:end);
-        
+                
         % remove nans
         %y = y(~isnan(y));
         %x = x(~isnan(y));

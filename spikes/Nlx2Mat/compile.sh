@@ -9,18 +9,18 @@
 #
 
 #== Should it compile for 32 or 64 bit matlab and which platform
-PLATFORM="64PC"     #should be 32PC, 64PC, 32MAC or 64MAC
+PLATFORM="64MAC"     #should be 32PC, 64PC, 32MAC or 64MAC
 
 #== paths to matlab
 #defaults for MAC
 #INCLMATLAB="/Applications/MATLAB_R2009a.app/extern/include/"
 #BINMATLAB="/Applications/MATLAB_R2009a.app/bin/"
-#INCLMATLAB="/Applications/MATLAB_R2010b.app/extern/include/"
-#BINMATLAB="/Applications/MATLAB_R2010b.app/bin/"
+INCLMATLAB="/Applications/MATLAB_R2019a.app/extern/include/"
+BINMATLAB="/Applications/MATLAB_R2019a.app/bin/"
 
 #defaults for Linux
-INCLMATLAB="/opt/MATLAB/R2014b/extern/include/"
-BINMATLAB="/opt/MATLAB/R2014b/bin/"
+#INCLMATLAB="/opt/MATLAB/R2014b/extern/include/"
+#BINMATLAB="/opt/MATLAB/R2014b/bin/"
 
 
 #=== no parameters below here

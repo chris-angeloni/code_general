@@ -17,14 +17,14 @@ function [sta, nSpikes] = genSTA(spikes,S,w,fps,norm)
 %  sta = spike triggered average
 %  nSpikes = total spike count
 
-if ~all(mod(spikes,1)) == 0
+if any(mod(spikes,1)) > 0
     
     % convert spike times to stim bins
     spikes = ceil(spikes*fps);
     
 end
 
-sta = zeros(size(S,1),w/(1/fps)+1);
+sta = zeros(size(S,1),round(w/(1/fps))+1);
 for i = 1:length(spikes)
     
     if spikes(i) > w*fps && spikes(i) <= length(S)
