@@ -1,10 +1,10 @@
-function [x,y,mdl,ahat,mfit] = estNL(x,y,ops);
+function [x,y,mdl,ahat,mfit] = estNL_minfun_grid(x,y,ops);
 
-%% function [x,y,mdl,ahat,mfit] = estNL(x,y,ops);
+%% function [x,y,mdl,ahat,mfit] = estNL_minfun_grid(x,y,ops);
 %
 % this function fits an exponential to predicted versus measured
-% firing rates to estimate a neurons nonlinearity. for cleanliness,
-% removes outliers using Mahalanobis distance
+% firing rates to estimate a neurons nonlinearity using grid search
+% and minfun (fast compiled fitting tool)
 %
 % INPUT:
 %  x: linear convolution prediction
@@ -95,19 +95,15 @@ if strcmp(ops.model,'exponential')
     % exponential model
     mdl = @(a,x)(a(1) + a(2)*exp((x-a(4))*a(3)));
     
-    % parameter grid search
+    % starting parameters
     a0 = [repmat(min(yf),5,1) linspace(10,.001,5)' linspace(1,.01,5)' repmat(mean(xf),5,1)];
-    lb = [0 .001 -inf min(xf)];
-    ub = [max(yf) inf inf max(xf)];
     
 elseif strcmp(ops.model,'sigmoid')
     % sigmoid model
     mdl = @(a,x)(a(1) + a(2) ./ (1 + exp(-(x-a(4)).*a(3))));
     
-    % starting parameters and bounds
+    % starting parameters
     a0 = [repmat(min(yf),5,1) linspace(max(yf),min(yf),5)' linspace(2,.01,5)' repmat(mean(xf),5,1)];
-    lb = [0 .001 0 -inf];
-    ub = [max(yf) inf max(yf) inf];
     
 end
 
@@ -120,15 +116,11 @@ elseif any(isnan([yf(:); xf(:)]))
     
 else
     
-    % fit using fmincon
-    options = optimoptions('fmincon',...
-                           'OptimalityTolerance', 1e-10,...
-                           'StepTolerance', 1e-10, ...
-                           'ConstraintTolerance', 1e-10,...
-                           'Algorithm','active-set',...
-                           'Display','off',...
-                           'MaxFunctionEvaluations',100);
-    
+    % fit using minfun
+    options = [];
+    options.display = 'none';
+    options.numDiff = 1;
+            
     % unique parameter grid
     u1 = unique(a0(:,1));
     u2 = unique(a0(:,2));
@@ -147,14 +139,13 @@ else
                     for ii = 1:length(u4)
                         
                         if strcmp(ops.model,'exponential')
-                            p0 = [a0(i,1) a0(j,2) a0(k,3) a0(ii,4)];
+                            p0 = [a0(i,1) a0(j,2) a0(k,3) a0(ii,4)]';
                         else
-                            p0 = [a0(i,1) a0(j,2) a0(k,3) a0(ii,4)];
+                            p0 = [a0(i,1) a0(j,2) a0(k,3) a0(ii,4)]';
                         end
                         [ah(:,i,j,k,ii),fv(i,j,k,ii),ef(i,j,k,ii)] = ...
-                            fmincon(@(a)(norm(yf'-mdl(a,xf'))),p0,...
-                                    [],[],[],[],lb,ub,[], ...
-                                    options);
+                            minFunc(@(a)(norm(yf'-mdl(a,xf'))),p0,options);
+                        
                     end
                 end
             end
@@ -166,11 +157,11 @@ else
         
         % failure case
         if sum(ef(:)>0) == 0
-            fprintf(['Grid search failed to converge... trying minFunc ' ...
-                     'instead... ']);
+            fprintf(['Grid search failed to converge... fit using ' ...
+                     'basic params']);
              
             if strcmp(ops.model,'exponential')
-                a0 = [min(y); .5; .01; 0];
+                a0 = [min(y); .5; .1; 0];
             else
                 a0 = [min(y); .5; .01; 0];
             end
@@ -196,70 +187,13 @@ else
             
         end
         
-        % if fmincon errored out, just use minFunc
-        if strcmp(ops.model,'exponential')
-            a0 = [min(y); .5; .01; 0];
-        else
-            a0 = [min(y); max(y); .1; 0];
-        end
-        options = [];
-        options.display = 'none';
-        options.numDiff = 1;
-        [mfit.ahat,mfit.f,mfit.exitflag,mfit.output] = minFunc(...
-            @(a)(norm(yf'-mdl(a,xf'))),a0,options);
-        mfit.options = options;
         
         
     catch ME
-        % if fmincon errored out, just use minFunc
-        if strcmp(ops.model,'exponential')
-            a0 = [min(y); .5; .01; 0];
-        else
-            a0 = [min(y); max(y); .1; 0];
-        end
-        options = [];
-        options.display = 'none';
-        options.numDiff = 1;
-        [ahat,f,exitflag,output] = minFunc(@(a)(norm(yf'-mdl(a,xf'))), ...
-                                           a0,options);
-        
-    end
-    
-end
-    
-    
-    
-    
-    
-    
-    
-
-    
-    
-    
-%      % fit using minFunc
-%      options = [];
-%      options.display = 'none';
-%      options.numDiff = 1;
-%      [ahat,f,exitflag,output] = minFunc(@(a)(norm(yf'-mdl(a,xf'))), ...
-%                                         a0',options);
-    
-    debug = false;
-    
-    if debug
-        figure
-        hold on
-        scatter(x,y)
-        x1 = linspace(min(x),max(x),100);
-        y1 = mdl(ahat,x1);
-        plot(x1,y1);
-        y0 = mdl(a0,x1);
-        plot(x1,y0);
-        
+        rethrow(ME);
         keyboard
         
     end
-    
     
 end
 

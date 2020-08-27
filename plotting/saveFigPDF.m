@@ -17,7 +17,9 @@ if ~isempty(sz)
     set(h,'PaperSize',sz);
     set(h,'Position',[0 0 sz]);
 end
-print(h,savepath,'-dpdf','-r300','-painters');
+if exist('savepath','var') & ~isempty(savepath)
+    print(h,savepath,'-dpdf','-r300','-painters');
+end
 
 
 

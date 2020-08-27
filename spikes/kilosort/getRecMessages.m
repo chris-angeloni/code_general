@@ -16,11 +16,15 @@ fid = fopen(fnm,'r');
 msg = textscan(fid,'%s', 'delimiter',{'\n'});
 fclose(fid);
 
-% split messages by '0' chars (these are null)
-msgs = strsplit(msg{1}{2},'\0')';
+if any(size(msg{1}) > 1)
+    % split messages by '0' chars (these are null)
+    msgs = strsplit(msg{1}{2},'\0')';
 
-% remove empties
-msgs = msgs(~cellfun('isempty',msgs));
+    % remove empties
+    msgs = msgs(~cellfun('isempty',msgs));
+else
+    msgs = [];
+end
 
 % get timestamps
 ts = double(readNPY(fnt));

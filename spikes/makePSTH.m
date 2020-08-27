@@ -4,6 +4,10 @@ function [PSTH,raster,trials,PSTHsm] = makePSTH(spikes,triggers,edges,smth)
 % this function makes a PSTH and a spike raster given spike times,
 % trigger times, bin edges, and will optionally output a smoothed PSTH
 
+if size(spikes,1) == 1
+    spikes = spikes';
+end
+
 raster = [];
 trials = [];
 PSTH = zeros(length(triggers),length(edges)-1);

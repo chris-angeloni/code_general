@@ -25,6 +25,11 @@ if size(y,1) == 1
     y = y';
 end
 
+% if negative time vector, make it positive
+if any(t < 0)
+    t = fliplr(t) * -1;
+end
+
 % make the design matrix based on window
 % lag step in samples
 lagStep = round(t * fps);
@@ -34,7 +39,7 @@ nfs = size(S,1);
 % make a design matrix (super simple, just frequency x lags)
 X = zeros(nfs*nlags,length(S));
 for i = 1:nlags
-    rowI = (i-1)*nfs+1: i*nfs;
+    rowI = (i-1)*nfs+1 : i*nfs;
     X(rowI,:) = circshift(S,lagStep(i),2);
     
 end

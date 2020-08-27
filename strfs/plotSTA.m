@@ -26,6 +26,10 @@ if exist('smth','var') & ~isempty(smth)
     STA = imgaussfilt(STA,smth.*[1 2]);
 end
 
+if any(t<0)
+    t = fliplr(t);
+end
+
 % find even octave labels
 octs = find(mod(f,1000)==0);
 
@@ -36,12 +40,10 @@ set(gca,'ytick',octs);
 set(gca,'yticklabels',num2str(f(octs)'/1000));
 
 
-% recale axis
+% recale color axis
 if exist('clim','var')
     caxis(clim);
 end
 
 % make it look pretty
 axis tight
-%xlabel('Time (ms)');
-%ylabel('Frequency (kHz)');
