@@ -1,7 +1,7 @@
 function [hits, fas, AUC, dp] = computeROC(noise,signal,crits)
 
 if ~exist('crits','var')
-    crits = linspace(min([noise; signal]),max([noise;signal]),100);
+    crits = linspace(min([noise(:); signal(:)]),max([noise(:);signal(:)]),100);
 end
 for i = 1:length(crits)
     hits(i) = sum(signal > crits(i)) / length(signal);

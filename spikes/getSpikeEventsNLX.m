@@ -3,6 +3,8 @@ function [spikes,events,fs,cellInfo,labels] = getSpikeEventsNLX(root)
 % need to be in the data directory
 cd(root);
 
+
+
 %% events
 % load events
 [evTS, evIDs, evTTLs, ~, evStr, header] = ...
@@ -19,26 +21,39 @@ fs = str2num(tmp{2});
 % convert nlx times to samples from recording start
 recSN = (0:length(rTS)-1)*512;
 ev = interp1(rTS,recSN,evTS);
-evTS = ev / fs;
+evTS = ev' / fs;
 
 % get all event types (for now, just stim and laser)
 % binarize events
 binTTL = fliplr(dec2bin(evTTLs,3)-'0');
 
+evI = [1 4]; % stim and laser indices
 for i = 1:2
-    times{i,1} = evTS(find(diff(binTTL(:,i))==1) + 1);
-    times{i,2} = evTS(find(diff(binTTL(:,i))==-1) + 1);
+    times{evI(i),1} = evTS(find(diff(binTTL(:,i))==1) + 1);
+    times{evI(i),2} = evTS(find(diff(binTTL(:,i))==-1) + 1);
 end
-
+ 
 events.allEv = evTS;
 events.times = times;
 
+% parse messages
+msgs{1} = evStr;
+I = contains(evStr,' Recording') | contains(evStr,'TTL Input');
+msgs{2} = evStr(~I);
+msgs{1} = evTS(~I)';
+events.msgtext = msgs;
+
 %% spikes
-spks = double(readNPY(fullfile(root,'spike_times.npy'))) / fs;
-clust  = double(readNPY(fullfile(root,'spike_clusters.npy')));
+
+% find the subdirectory with data
+ff = dir(fullfile(root,'*','spike_times.npy'));
+spikeroot = ff.folder;
+
+spks = double(readNPY(fullfile(spikeroot,'spike_times.npy'))) / fs;
+clust  = double(readNPY(fullfile(spikeroot,'spike_clusters.npy')));
 
 % load cluster groups
-fid = fopen(fullfile(root,'cluster_group.tsv'));
+fid = fopen(fullfile(spikeroot,'cluster_group.tsv'));
 textscan(fid,'%s\t%s\n');     % header
 dat = textscan(fid,'%d\t%s'); % data
 fclose(fid);
@@ -51,9 +66,14 @@ spikes.clust = clust;
 spikes.clustID = clustID;
 spikes.labels = labels;
 
-fileChunks = strsplit(root,'/');
+fileChunks = strsplit(spikeroot,'/');
 if ~any(contains(fileChunks,'~'))
-    ind = [6 7];
+    ind(1) = 6;
+    if contains(fileChunks{7},'Session')
+        ind(2) = 8;
+    else
+        ind(2) = 7;
+    end
 else
     ind = [4 5];
 end

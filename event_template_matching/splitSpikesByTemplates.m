@@ -1,7 +1,11 @@
-function [block, cellInfo, labels, spikes, events, fs] = splitSpikesByTemplates(root,templateDir,drift_correct)
+function [block, cellInfo, labels, spikes, events, fs] = splitSpikesByTemplates(root,templateDir,drift_correct,NLX)
 
 %% load events and spikes from non-noise units
-[spikes,events,fs,cellInfo,labels] = getSpikeEventsKS(root);
+if exist('NLX','var') & ~isempty(NLX)
+    [spikes,events,fs,cellInfo,labels] = getSpikeEventsNLX(root);
+else
+    [spikes,events,fs,cellInfo,labels] = getSpikeEventsKS(root);
+end
 stimOn = events.times{1,1};
 stimOff = events.times{1,2};
 laserOn = events.times{4,1};
@@ -25,8 +29,9 @@ for i = 1:length(template)
     
     % for stim and laser events
     for j = 1:2
-        tmp{i}{j} = strfind(d{j}',template(i).diffs{j}');
         
+        tmp{i}{j} = strfind(d{j}',template(i).diffs{j}');
+
     end
     
     % if there is at least one match to the template
@@ -57,22 +62,22 @@ for i = 1:length(template)
                 
                 % look for matches again
                 for j = 1:2
-                    tmp{i}{j} = strfind(d{j}',newtemp{j}');
+                    match{i}{j} = strfind(d{j}',newtemp{j}');
                     
                 end
                 
                 % check for multiple blocks
-                if any(cellfun(@length,tmp{i}) > 1)
+                if any(cellfun(@length,match{i}) > 1)
                     
                     % if it still finds more than one block, check
                     % if the block onsets are equal to the number
                     % of events, if so, we need to keep replicating
-                    if ~any(diff(tmp{i}{1}) == length(template(i).times{1})) & ...
-                            ~any(diff(tmp{i}{2}) == length(template(i).times{2}))
+                    if ~any(diff(match{i}{1}) == length(template(i).times{1})) & ...
+                            ~any(diff(match{i}{2}) == length(template(i).times{2}))
                         
                         % if they're not equal to the number of the
                         % events check that the blocks are well seperated
-                        if ~any(diff(tmp{i}{1}) == 2) & ~any(diff(tmp{i}{2}) == 2)
+                        if ~any(diff(match{i}{1}) == 2) & ~any(diff(match{i}{2}) == 2)
                             templateMatch = true;
                             break;
                             
@@ -80,13 +85,22 @@ for i = 1:length(template)
                         
                     end
                     
-                elseif all(cellfun('isempty',tmp{i}))
+                elseif all(cellfun('isempty',match{i}))
                     % if it doesn't find any matches after
-                    % replicating, no match
-                    templateMatch = false;
-                    break;
+                    % replicating, check for well separated blocks
+                    if any(diff(tmp{i}{1}) > 30) | any(diff(tmp{i}{2}) > 30)
+                        for j = 1:2
+                            newtemp{j} = template(i).diffs{j};
+                        end
+                        repCount = repCount - 1;
+                        templateMatch = true;
+                        break;
+                    else
+                        templateMatch = false;
+                        break;
+                    end
                     
-                elseif any(cellfun(@length,tmp{i}) == 1)
+                elseif any(cellfun(@length,match{i}) == 1)
                     % otherwise, if it found only 1 match for stim and
                     % laser, so it is a match;
                     templateMatch = true;
@@ -140,6 +154,7 @@ for i = 1:length(template)
     
     if templateMatch
         %fprintf('\t*********Template matched!\n\n');
+        
         for ii = 1:max(cellfun(@length,tmp{i}))
             cnt = cnt + 1;
             block(cnt).name = template(i).name;

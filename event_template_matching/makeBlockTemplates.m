@@ -1,4 +1,4 @@
-
+function makeBlockTemplates(stimDir)
 %% format for a block template
 %
 % template{n}{1} = stimEvent differences, rounded to the nearest ms
@@ -7,10 +7,13 @@
 
 %% wav file list
 
-fileList = dir('~/chris-lab/projects/stimuli/_forTemplates/*.wav');
+if nargin < 1
+    stimDir = '~/chris-lab/projects/stimuli/_forTemplates/';
+end
+fileList = dir(fullfile(stimDir,'*.wav'));
 
 for i = 1:length(fileList)
-    fprintf('Making template %d/%d\n',i,length(fileList));
+    fprintf('Making template %d/%d %s\n',i,length(fileList),fileList(i).name);
     
     % file stuff
     template(i).fileName = fullfile(fileList(i).folder, ...
@@ -64,7 +67,10 @@ for i = 1:length(fileList)
     
 end
 
-templateDir = '~/chris-lab/code_general/blockTemplates.mat';
+currPath = which('makeBlockTemplates.m');
+strs = strsplit(currPath,filesep);
+currPath = strjoin(strs(1:end-1),filesep);
+templateDir = fullfile(currPath,'blockTemplates.mat');
 save(templateDir,'template');
 
 

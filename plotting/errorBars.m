@@ -1,6 +1,6 @@
-function [p my erry] =errorBars(X,Y,color,err,smth)
+function [p my erry] = errorBars(X,Y,color,err,smth)
 
-% function [p pl my] = patchErrorBars(X,Y,color,err,smth)
+% function [p my erry] = errorBars(X,Y,color,err,smth)
 
 if ~exist('err','var') || isempty(err)
     err = 'sem';

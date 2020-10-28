@@ -1,4 +1,4 @@
-function [NR, uPatt] = responsePower(psth,index)
+function [NR, uPatt, Ps, Pn] = responsePower(psth,index)
 
 %% function [NR, uPatt] = responsePower(psth,index)
 % computes response power ratio ala Sahani & Linden, 2003
@@ -6,7 +6,7 @@ function [NR, uPatt] = responsePower(psth,index)
 % same stimulus (NR == 0 is an identical PSTH, NR >> 0 are less repeatable)
 
 % power function
-Power = @(x)(mean((x-mean(x)).^2));
+Power = @(x)(mean((x-mean(x,2)).^2,2));
 
 % for each unique stimulus
 [uPatt,~,uPattI] = unique(index,'rows');
@@ -19,19 +19,19 @@ for i = 1:length(uPatt)
     Pt = mean((FR - mean(FR,2)).^2,2);
     
     % power of the average response
-    Pa = Power(mean(FR));
+    Pa = Power(mean(FR,1));
     
     % power across trials
     Pr = mean(Pt);
     
     % signal power
-    Ps = (N * Pa - Pr) / (N - 1);
+    Ps(i) = (N * Pa - Pr) / (N - 1);
     
     % noise power
-    Pn = Pr - Ps;
+    Pn(i) = Pr - Ps(i);
     
     % noise ratio
-    NR(i,:) = Pn/Ps;
+    NR(i) = Pn(i)/Ps(i);
         
 end
 

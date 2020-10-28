@@ -1,7 +1,7 @@
 function plotPrefs
 set(gca,'TickDir','out');
 %set(gca,'FontSize',12);
-set(gca,'FontSize',8);
+%set(gca,'FontSize',8);
 set(gca,'LineWidth',.5 );
 %set(gca,'TickLength',[.035 .035]);
 set(gca,'XColor','k','YColor','k')
