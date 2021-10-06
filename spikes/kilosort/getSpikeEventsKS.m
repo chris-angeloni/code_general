@@ -48,7 +48,20 @@ spks = double(readNPY(fullfile(root,'continuous','Rhythm_FPGA-100.0','spike_time
 clust  = double(readNPY(fullfile(root,'continuous','Rhythm_FPGA-100.0','spike_clusters.npy')));
 
 % load cluster groups
-fid = fopen(fullfile(root,'continuous','Rhythm_FPGA-100.0','cluster_group.tsv'));
+curated = fullfile(root,'continuous','Rhythm_FPGA-100.0', ...
+                   'cluster_group.tsv');
+sorted = fullfile(root,'continuous','Rhythm_FPGA-100.0', ...
+                  'cluster_KSLabel.tsv');
+if ~exist(curated) & exist(sorted)
+    fprintf('%s not found, use %s instead?',curated,sorted);
+    keyboard
+    fid = fopen(sorted);
+elseif ~exist(curated) & ~exist(sorted)
+    fprintf('No sorted or curated data found');
+    keyboard
+elseif exist(curated)
+    fid = fopen(curated);
+end
 textscan(fid,'%s\t%s\n');     % header
 dat = textscan(fid,'%d\t%s'); % data
 fclose(fid);

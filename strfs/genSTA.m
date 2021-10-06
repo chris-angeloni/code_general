@@ -7,6 +7,8 @@ function [sta, nSpikes] = genSTA(spikes,S,w,fps,norm)
 % the stimulus
 %
 % INPUTS:
+%  spikes = vector of spike times or n spikes x 2 matrix of 
+%           spike sample number and spike weight at that sample
 %  S = stimulus spectrogram of m frequencies by n time bins
 %  w = length of the stimulus window to consider for the STA (how
 %      far back in time do you want your STA to go)
@@ -24,12 +26,26 @@ if any(mod(spikes,1)) > 0
     
 end
 
-sta = zeros(size(S,1),round(w/(1/fps))+1);
+if size(S,2) > size(S,1)
+    S = S';
+end
+
+if size(spikes,2) > size(spikes,1)
+    spikes = spikes';
+end
+
+% add dummy spike weights
+if size(spikes,2) == 1
+    spikes = [spikes ones(size(spikes))];
+end
+
+sta = zeros(size(S,2),round(w/(1/fps))+1);
 for i = 1:length(spikes)
     
-    if spikes(i) > w*fps && spikes(i) <= length(S)
+    if spikes(i,1) > w*fps && spikes(i,1) <= length(S)
         
-        spikeStim = S(:,spikes(i) - ((w*fps)):spikes(i));
+        % weighted addition by spike number
+        spikeStim = S(spikes(i,1) - ((w*fps)):spikes(i,1),:)' .* spikes(i,2);
         sta = sta + spikeStim;
         
     end

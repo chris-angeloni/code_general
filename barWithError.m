@@ -1,6 +1,6 @@
-function h = barWithError(Y,label,colors,err)
+function h = barWithError(Y,label,colors,err,varargin)
 
-%% function h = barWithError(Y,label,colors,err)
+%% function h = barWithError(Y,label,colors,err,varargin)
 %
 % plots a bar graph with error bars
 % Y: data to be plotted (will average over columns)
@@ -47,8 +47,12 @@ end
 hold on
 x = 1:size(Y,2);
 for i = 1:size(Y,2)
-    h(i) = bar(x(i),my(i));
-    h(i).FaceColor = colors(i,:);
+    h(i) = bar(x(i),my(i),varargin{:});
+    if ~iscell(colors)
+        h(i).FaceColor = colors(i,:);
+    else
+        h(i).FaceColor = colors{i};
+    end
     h(i).BarWidth = .5;
     plot([x(i) x(i)],[y(:,i) y(:,i)],'k',...
          'LineWidth',1.5);
@@ -58,4 +62,3 @@ set(gca,'xtick',x);
 if exist('label','var') & ~isempty(label)
     set(gca,'XTickLabel',label);
 end
-    

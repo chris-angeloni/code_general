@@ -1,4 +1,4 @@
-function [params,mdl,tau,fmcon,minfun] = fitExpGrid(x,y,p0,weights)
+function [params,mdl,tau,fmcon,minfun,options] = fitExpGrid(x,y,p0,weights,lb,ub)
 
 %% function [params,mdl,tau,fmcon,minfun] = fitExp(x,y,p0,weights)
 %
@@ -31,6 +31,15 @@ options = optimoptions('fmincon',...
                        'Algorithm','active-set',...
                        'Display','notify');
 
+if nargin == 0
+    params = mdl;
+    mdl = options;
+    tau = [];
+    fmcon = [];
+    minfun = [];
+    return;
+end
+
 % force x and y to be rows
 if size(x,1) ~= 1
     x = x';
@@ -58,7 +67,7 @@ end
 if ~exist('p0','var')
     p0 = [];
 end
-nsearchpoints = 10;
+nsearchpoints = 5;
 grid(1,:) = repmat(min(y),1,nsearchpoints);
 grid(2,:) = linspace(1,range(y)*10,nsearchpoints);
 grid(3,:) = linspace(min(x),max(x),nsearchpoints);
@@ -70,8 +79,12 @@ end
 grid = [p0 grid];
 
 % set up search limits
-lb = [min(y) -inf 0];
-ub = [max(y) inf max(x)];
+if ~exist('lb','var') | isempty(lb)
+    lb = [min(y) -inf 0.001];
+end
+if ~exist('ub','var') | isempty(ub)
+    ub = [max(y) inf max(x)];
+end
 
 % grid search
 for i = 1:size(grid,2)

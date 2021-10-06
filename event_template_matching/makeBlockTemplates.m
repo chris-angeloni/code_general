@@ -52,7 +52,7 @@ for i = 1:length(fileList)
         tl = [];
         dl = [];
     end
-    
+        
     % mark whether this includes stim and laser events
     template(i).presentStim = [~isempty(ds) ~isempty(dl)];
     
@@ -71,7 +71,7 @@ currPath = which('makeBlockTemplates.m');
 strs = strsplit(currPath,filesep);
 currPath = strjoin(strs(1:end-1),filesep);
 templateDir = fullfile(currPath,'blockTemplates.mat');
-save(templateDir,'template');
+save(templateDir,'template','-v7.3');
 
 
 

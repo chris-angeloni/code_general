@@ -291,10 +291,13 @@ cpredmat = cell(nfolds,1);
 
 if (parallel == true)
     offpar = 0;
-    if matlabpool('size') <= 0
-        offpar = 1;
-        matlabpool;
-    end
+%      if matlabpool('size') <= 0
+%          offpar = 1;
+%          matlabpool;
+%      end
+    
+    p = gcp();
+    %fprintf('Running cvglmnet in parallel...\n');
     
     parfor i = 1: nfolds
         which = foldid==i;
@@ -308,9 +311,11 @@ if (parallel == true)
         cpredmat{i} = glmnet(xr, yr, family, opts);
     end
     
-    if (offpar)
-        matlabpool close;
-    end    
+    %delete(gcp('nocreate'));
+    
+%      if (offpar)
+%          matlabpool close;
+%      end    
 else   
     for i = 1: nfolds        
         which = foldid==i;

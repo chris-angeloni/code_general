@@ -9,14 +9,6 @@ function [b,p,xp,yp,ypci,mdl] = fitlmWrapper(X,y)
 % outputs the fit coefficients (b), pvalue (p), fit line in the
 % range of the data (xp,yp), error of the fit (ypci), and the whole
 % model (mdl)
- 
-% clean up inputs
-if size(X,1) == 1
-    X = X';
-end
-if size(y,1) == 1
-    y = y';
-end
 
 % fit the data
  mdl = fitlm(X,y);

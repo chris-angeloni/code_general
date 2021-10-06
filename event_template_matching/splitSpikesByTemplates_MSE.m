@@ -1,4 +1,4 @@
-function [block, cellInfo, labels, spikes, events, fs] = splitSpikesByTemplates_MSE(root,templateDir,drift_correct,NLX)
+function [block, cellInfo, labels, spikes, events, fs] = splitSpikesByTemplates_MSE(root,template,drift_correct,NLX)
 
 %% load events and spikes from non-noise units
 if exist('NLX','var') & ~isempty(NLX)
@@ -18,7 +18,7 @@ d{1} = round(diff(stim),3); % stim differences
 d{2} = round(diff(laser),3); % laser differences
 
 % load block templates
-load(templateDir);
+%load(templateDir);
 
 templateMatch = false;
 
@@ -42,6 +42,10 @@ for i = 1:length(template)
         
         tmp{i}{j} = find(MSE < .001);
 
+    end
+    
+    if i== 12
+        %keyboard
     end
     
     % if there is at least one match to the template
@@ -72,6 +76,15 @@ for i = 1:length(template)
                 
                 % look for matches again
                 for j = 1:2
+                    
+%                      MSE = [];
+%                      for ii = 1:length(d{j})-length(newtemp{j})+1
+%                          ind = ii:ii+length(newtemp{j})-1;
+%                          MSE(ii) = mean((d{j}(ind) - newtemp{j}).^2);
+%                      end
+%                      
+%                      [~,match{i}{j}] = find(MSE == min(MSE));
+                    
                     match{i}{j} = strfind(d{j}',newtemp{j}');
                     
                 end
@@ -128,9 +141,9 @@ for i = 1:length(template)
         % check if there are supposed to be laser events, but
         % there are none in this template or vice versa
         stimI = stim(tmp{i}{1}:tmp{i}{1}+ ...
-                     length(template(i).diffs{1}));
+                     min([length(template(i).diffs{1}) length(tmp{i}{1})]));
         laserI = laser(tmp{i}{2}:tmp{i}{2}+ ...
-                       length(template(i).diffs{2}));
+                        min([length(template(i).diffs{2}) length(tmp{i}{2})]));
         
         if ~isempty(stimI) 
             if (sum(laser >= stimI(1) & laser <= stimI(end)) > 1 && ...

@@ -20,7 +20,7 @@ for i = 1:length(triggers)
     spks = spikes - triggers(i);
     
     % extract spikes within the PSTH window only
-    spks = spks(spks > edges(1) & spks < edges(end));
+    spks = spks(spks > edges(1) & spks <= edges(end));
     
     % raster
     raster = [raster spks'];

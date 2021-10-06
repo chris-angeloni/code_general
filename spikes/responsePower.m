@@ -6,7 +6,7 @@ function [NR, uPatt, Ps, Pn] = responsePower(psth,index)
 % same stimulus (NR == 0 is an identical PSTH, NR >> 0 are less repeatable)
 
 % power function
-Power = @(x)(mean((x-mean(x,2)).^2,2));
+Power = @(x)(mean((x-mean(x,2,'omitnan')).^2,2,'omitnan'));
 
 % for each unique stimulus
 [uPatt,~,uPattI] = unique(index,'rows');
@@ -16,13 +16,13 @@ for i = 1:length(uPatt)
     N = size(FR,1);
     
     % power for each trial response
-    Pt = mean((FR - mean(FR,2)).^2,2);
+    Pt = Power(FR);
     
     % power of the average response
-    Pa = Power(mean(FR,1));
+    Pa = Power(mean(FR,1,'omitnan'));
     
     % power across trials
-    Pr = mean(Pt);
+    Pr = mean(Pt,1);
     
     % signal power
     Ps(i) = (N * Pa - Pr) / (N - 1);

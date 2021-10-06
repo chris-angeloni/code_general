@@ -280,19 +280,20 @@ for b = 1:length(block)
             if strcmp(block(b).name, ...
                       'behaviorPsychWithLaserPulse.wav')
                 
+                % get recorded events
                 stimLength = (template(block(b).template).stimLength-1)/template(block(b).template).fs;
-                
                 ev = sort([block(b).stimOn; block(b).stimOff]);
                 
+                % create actual events based on stimulus template
                 ev_actual = template(block(b).template).times{1};
                 for i = 1:block(b).nreps-1
                     ev_actual = [ev_actual; ...
                                  stimLength * i + template(block(b).template).times{1}];
                 end
                 
+                % compute drift between recorded and actual events
                 x = [ones(size(ev)) ev];
                 y = ev_actual;
-                
                 beta = x\y;
                 
                 % scale times by the drift
@@ -309,9 +310,8 @@ for b = 1:length(block)
             end
 
             
-            % check stim events
+            % get recorded events
             ev = block(b).stimOn;
-
             if isempty(ev)
                 
                 % check laser events if no stim events
@@ -319,15 +319,15 @@ for b = 1:length(block)
                 
             end
             
+            % event differences rounded to nearest ms
             de = round(diff(ev),3);
             
             if ~any(diff(de)>0)
+                
                 % observed clock events (x) to predict real time (y)
                 x = [ones(size(ev)) ev];
                 y = [0; cumsum(de)];
-                
                 beta = x\y;
-                
 
                 % scale times by the drift
                 block(b).spikes = [ones(size(block(b).spikes)) block(b).spikes] * beta;
@@ -341,7 +341,8 @@ for b = 1:length(block)
                 end
                 
             else
-                fprintf('\t\tNonhomogenous events in block %s... will not perform drift correction!\n',block(b).name);
+                fprintf('\t\tNonhomogenous events in block %s... will not perform drift correction!\n',...
+                        block(b).name);
                 
             end
             

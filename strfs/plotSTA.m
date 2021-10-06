@@ -26,7 +26,7 @@ if exist('smth','var') & ~isempty(smth)
     STA = imgaussfilt(STA,smth.*[1 2]);
 end
 
-if any(t<0)
+if any(t>0)
     t = fliplr(t);
 end
 

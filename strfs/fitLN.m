@@ -36,74 +36,76 @@ function [ln,ops] = fitLN(stimulus,spikes,ops)
 %  ln.ylin = ylin;        % linear prediction used (indexed)
 
 
-if isempty(ops.index) | ~isfield(ops,'index')
+if ~isfield(ops,'index') | isempty(ops.index)
     ops.index = ones(size(spikes));
 end
 
-% index the spikes and stimulus
+% index the spikes
 spikes = spikes(ops.index);
-stimulus = stimulus(:,ops.index);
 
 % if no sta
-if isempty(ops.sta) | ~isfield(ops,'sta')
+if ~isfield(ops,'sta') | isempty(ops.sta)
     
-    keyboard
+    error('NO FILTER PROVIDED!')
     
-    % check for sta parameters
-    if (isempty(ops.fs) | ~isfield(ops,'fs'))
-        ops.fs = 1000;
-    end
-    if (isempty(ops.w) | ~isfield(ops,'w'))
-        ops.w = .1;
-        ops.t = (-ops.w:1/ops.fs:0) * 1000;
-    end
-    if (isempty(ops.f) | ~isfield(ops,'f'))
-        ops.f = [];
-        warning('No frequency (ops.f) specified for the STA!');
-    end
-
-    % make sta
-    STA = genSTA(find(spikes>0),stimulus,ops.w,ops.fs);
-    STA = STA - mean(STA(:));
-    STA = STA ./ sqrt(sum(STA(:).^2));
-    ops.sta = STA;
 end
 
 % check nonlinearity parameters
-if (isempty(ops.nbins) | ~isfield(ops,'nbins'))
+if ~isfield(ops,'nbins') | isempty(ops.nbins)
     ops.nbins = 50;
 end
-if (isempty(ops.weight) | ~isfield(ops,'weight'))
+if ~isfield(ops,'weight') | isempty(ops.weight)
     ops.weight = false;
 end
 
 % check for spike smoothing
-if ~(isempty(ops.sigma) | isfield(ops,'sigma'))
-    
+if isfield(ops,'sigma') & ~isempty(ops.sigma)
+        
     % check for sample rate
-    if (isempty(ops.fs) | ~isfield(ops,'fs'))
+    if ~isfield(ops,'fs') | isempty(ops.fs)
         error('To smooth, provide a sample rate in ops.fs!');;
     end
     
-    tmp = conv(spikes,...
-               normpdf(-6*ops.sigma*ops.fs:6*ops.sigma*ops.fs,0,ops.sigma*ops.fs) * ops.fs,'full');
-    tmp = tmp(1:length(spikes));
+    % make the smoothing kernel
+    kernel = normpdf(-6*ops.sigma*ops.fs:6*ops.sigma*ops.fs,0, ...
+                       ops.sigma*ops.fs) * ops.fs;
+    
+    % smooth
+    tmp = conv(spikes,kernel,'full');
+    
+    % take only valid portion
+    if mod(length(kernel),2)
+        tmp = tmp(floor(length(kernel)/2)+1:...
+                  end-floor(length(kernel)/2));
+    else
+        tmp = tmp(floor(length(kernel)/2):...
+                  end-floor(length(kernel)/2));
+    end
     spikes = tmp;
+    
 else
     spikes = spikes * ops.fs;
 end
 
+% if the sta is all nans, use a random sta
+if any(isnan(ops.sta))
+    ops.sta = rand(size(ops.sta));
+    ops.sta = normSTA(ops.sta);
+end
 
-% make a linear prediction
+% make a linear prediction for the whole stimulus, then index
 ylin = convStimSTA(stimulus,ops.sta,'full');
+ylin = ylin(ops.index);
 
 % fit the nonlinearity
-[x1,y1,nmdl,ahat] = estNLFR(spikes,ylin,ops.nbins,ops.weight,ops.modelType,ops.includeZeros);
+[x1,y1,nmdl,ahat] = estNL_minfun(ylin,spikes/ops.fs,ops); 
+%[x1,y1,nmdl,ahat] = estNL(ylin,spikes/ops.fs,ops);
 
 % outputs
 ln.sta = ops.sta;
 ln.xy = [x1' y1'];
 ln.ahat = ahat;
+ln.model = nmdl;
 ln.spikes = spikes;
 ln.ylin = ylin;
 

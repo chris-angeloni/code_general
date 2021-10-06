@@ -1,6 +1,6 @@
-function [params,mdl,threshold,sensitivity,fmcon,minfun,pthresh] = fitLogGrid(x,y,p0,weights,ngrid,perfthresh)
+function [params,mdl,threshold,sensitivity,fmcon,minfun,pthresh] = fitLogGrid(x,y,p0,weights,ngrid,perfthresh,lb,ub)
 
-%% function [params,mdl,threshold,sensitivity,fmcon,minfun] = fitLogGrid(x,y,p0,weights,ngrid,perfthresh)
+%% function [params,mdl,threshold,sensitivity,fmcon,minfun] = fitLogGrid(x,y,p0,weights,ngrid,perfthresh,lb,ub)
 %
 % This function fits a psychometric curve to data using a logistic
 % function using constrained optimization, fmincon, with a grid search:
@@ -15,6 +15,11 @@ function [params,mdl,threshold,sensitivity,fmcon,minfun,pthresh] = fitLogGrid(x,
 %
 % INPUTS:
 %  x,y: x and y data points to fit (eg. x = target SNR, y = p(response))
+%  p0: starting parameters to try in addition to grid search
+%  weights: optional weight for each observation
+%  ngrid: number of interpolation points for grid search
+%  perfthresh: optional performance criterion to evaluate threshold
+%  lb/ub: lower and upper parameter bounds
 %
 % OUTPUTS:
 %  params: the fit parameters [alpha,beta,gamma,lambda]
@@ -54,25 +59,38 @@ else
     if size(y,1) ~= 1
         y = y';
     end
+    
+    % set weights to be 1 by default
+    if ~exist('weights','var') | isempty(weights)
+        weights = ones(size(x));
+    end
 
     % make values close to 0 and 1 be slightly less for fitting
     y(y == 0) = .001;
     y(y == 1) = .999;
+    
+    % remove nans
+    x(isnan(y)) = [];
+    weights(isnan(y)) = [];
+    y(isnan(y)) = [];
 
-    if exist('weights','var') & ~isempty(weights)
-        ynew = [];
-        xnew = [];
-        for i = 1:length(x)
-            ynew = [ynew repmat(y(i),1,weights(i))];
-            xnew = [xnew repmat(x(i),1,weights(i))];
-        end
-        y = ynew;
-        x = xnew;
+    % assign weights
+    ynew = [];
+    xnew = [];
+    for i = 1:length(x)
+        ynew = [ynew repmat(y(i),1,weights(i))];
+        xnew = [xnew repmat(x(i),1,weights(i))];
     end
+    y = ynew;
+    x = xnew;
 
     % set up search limits
-    lb = [min(x) .001 0 0];
-    ub = [max(x) 10 1 1];
+    if ~exist('lb','var') | isempty(lb)
+        lb = [min(x) .001 0 0];
+    end
+    if ~exist('ub','var') | isempty(ub)
+        ub = [max(x) 10 1 1];
+    end
 
     % grid points to try for each tunable parameter
     if ~exist('ngrid','var') | isempty(ngrid)
@@ -125,12 +143,18 @@ else
     fmcon.output = o;
     fmcon.options = options;
 
-    % fit with minfunc for good measure (its fast, very little overhead...)
-    options = [];
-    options.display = 'none';
-    options.numDiff = 1;
-    [minfun.params,minfun.fval,minfun.exitflag,minfun.output] = ...
-        minFunc(@(p) norm(y-mdl(p,x)),[grid1(i) grid2(j) min(y) 1-max(y)]',options);
-    minfun.options = options;
+
+    if exist('minFunc')
+        % fit with minfunc for good measure (its fast, very little
+        % overhead...)
+        options = [];
+        options.display = 'none';
+        options.numDiff = 1;
+        [minfun.params,minfun.fval,minfun.exitflag,minfun.output] = ...
+            minFunc(@(p) norm(y-mdl(p,x)),[grid1(i) grid2(j) min(y) 1-max(y)]',options);
+        minfun.options = options;
+    else
+        minfun = [];
+    end
 
 end
