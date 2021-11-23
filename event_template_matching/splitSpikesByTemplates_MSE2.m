@@ -25,7 +25,20 @@ d{1} = round(diff(stim),3); % stim differences
 d{2} = round(diff(laser),3); % laser differences
 
 % load block templates
-load(templateDir);
+if isstr(templateDir)
+    % load templates if string, otherwise assume it is templates already
+    load(templateDir);
+elseif isstruct(templateDir)
+    template = templateDir;
+else
+    error(['splitSpikesByTemplates.m: templateDir must be a directory ' ...
+           'or struct of templates.']);
+end
+
+figure(999); clf; hold on;
+scatter(stim(1:end-1),diff(stim),10,'k.','markeredgealpha',.2)
+scatter(laser(1:end-1),diff(laser),10,'kx','markeredgealpha',.2)
+set(gca,'yscale','log');
 
 templateMatch = false;
 
@@ -78,23 +91,36 @@ for i = 1:length(template)
                 % check matches again
                 match = strfind(alld',newtemp');               
                 
-                % check for multiple blocks
+                % check whether the same shifted template is being
+                % fit to the same block by assessing if the
+                % templates overlap
                 if length(match) > 1
-                    
-                    % if it still finds more than one block, check
-                    % if the block onsets are equal to the number
-                    % of events, if so, we need to keep replicating
-                    if ~any(diff(match) == length(tmp_times))
-                        
-                        % if they're not equal to the number of the
-                        % events check that the blocks are well seperated
-                        if ~any(diff(match == 2))
-                            templateMatch = true;
-                            break;
-                            
-                        end
+                                        
+                    if ~any(diff(match) < round(length(newtemp)))
+                        templateMatch = true;
+                        break;
                         
                     end
+                    
+%                  elseif length(match) > 1
+%                      
+%                      keyboard
+%                                          
+%                      % if it still finds more than one block, check
+%                      % if the block onsets are equal to the number
+%                      % of events, if so, we need to keep replicating
+%                      if ~any(diff(match) == length(tmp_times))
+%                          
+%                          % if they're not equal to the number of the
+%                          % events check that the blocks are well seperated
+%                          if ~any(diff(match == 2))
+%                              templateMatch = true;
+%                              break;
+%                              
+%                          end
+%                          
+%                      end
+                    
                     
                 elseif isempty(match)
                     % if it doesn't find any matches after
@@ -180,6 +206,13 @@ for i = 1:length(template)
             block(cnt).start = evT(1);
             block(cnt).end = block(cnt).start + ((template(i).stimLength * block(cnt).nreps) ...
                                                  / template(i).fs);
+        
+        all_l = sort([block(cnt).laserOn; block(cnt).laserOff]);
+        sh = scatter(all_l(1:end-1),diff(all_l),...
+                'markeredgealpha',.2);
+        all_s = sort([block(cnt).stimOn; block(cnt).stimOff]);
+        scatter(all_s(1:end-1),diff(all_s),sh.SizeData,sh.CData,...
+                'markeredgealpha',.2);        
         
         
         end

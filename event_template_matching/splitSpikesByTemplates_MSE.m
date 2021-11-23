@@ -20,6 +20,11 @@ d{2} = round(diff(laser),3); % laser differences
 % load block templates
 %load(templateDir);
 
+figure(999); clf; hold on;
+scatter(stim(1:end-1),diff(stim),10,'k.','markeredgealpha',.2)
+scatter(laser(1:end-1),diff(laser),10,'kx','markeredgealpha',.2)
+set(gca,'yscale','log')
+
 templateMatch = false;
 
 cnt = 0;
@@ -221,9 +226,11 @@ for i = 1:length(template)
 
             % start and end times
             block(cnt).start = min([stimI; laserI]);
-            block(cnt).end = block(cnt).start + ((template(i).stimLength * block(cnt).nreps) ...
-                                                 / template(i).fs);
+            block(cnt).end = block(cnt).start + ...
+            ((template(i).stimLength * block(cnt).nreps) / template(i).fs);
         
+        all_l = sort([block(cnt).laserOn; block(cnt).laserOff]);
+        scatter(all_l(1:end-1),diff(all_l));
         
         end
         
